@@ -2,11 +2,18 @@ FROM eclipse-temurin:21-jdk
 
 WORKDIR /app
 
-COPY . .
+COPY gradle gradle
+COPY build.gradle.kts .
+COPY settings.gradle.kts .
+COPY gradlew .
 
-RUN ./gradlew shadowJar
+RUN ./gradlew --no-daemon dependencies
 
-RUN cp /app/build/libs/app.jar /app/app.jar
+COPY src src
+COPY config config
+
+RUN ./gradlew --no-daemon build
+
 
 EXPOSE 7070
 
