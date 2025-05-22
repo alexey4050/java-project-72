@@ -1,31 +1,24 @@
 # Этап сборки
-FROM eclipse-temurin:21-jdk as builder
+FROM eclipse-temurin:20-jdk
+
+ARG GRADLE_VERSION=8.2
+
+RUN apt-get update && apt-get install -yq unzip
+
+RUN wget -q https://services.gradle.org/distributions/gradle-${GRADLE_VERSION}-bin.zip \
+    && unzip gradle-${GRADLE_VERSION}-bin.zip \
+    && rm gradle-${GRADLE_VERSION}-bin.zip
+
+ENV GRADLE_HOME=/opt/gradle
+
+RUN mv gradle-${GRADLE_VERSION} ${GRADLE_HOME}
+
+ENV PATH=$PATH:$GRADLE_HOME/bin
 
 WORKDIR /app
 
-# 1. Сначала копируем только файлы для загрузки зависимостей
-COPY ./gradlew .
-COPY ./gradle ./gradle
-COPY ./build.gradle.kts .
-COPY ./settings.gradle.kts .
+COPY /app .
 
-# 2. Скачиваем зависимости (кешируемый слой)
-RUN ./gradlew --version
+RUN gradle installDist
 
-# 3. Копируем исходный код
-COPY ./src ./src
-
-# 4. Собираем проект
-RUN ./gradlew shadowJar --no-daemon
-
-# Финальный образ
-FROM eclipse-temurin:21-jre
-
-WORKDIR /app
-
-# Копируем собранный JAR
-COPY --from=builder /app/build/libs/app.jar .
-
-EXPOSE 7070
-
-CMD ["java", "-jar", "app.jar"]
+CMD ./build/install/app/bin/app
