@@ -1,9 +1,9 @@
-FROM gradle:7.4.0-jdk17
+FROM gradle:8.12.1-jdk21
 
 WORKDIR /app
 
-COPY /app .
+COPY . .
 
-RUN RUN ./gradlew --no-daemon build
+RUN ["./gradlew", "clean", "build"]
 
 CMD ["java", "-jar", "build/libs/HexletJavalin-1.0-SNAPSHOT-all.jar"]
