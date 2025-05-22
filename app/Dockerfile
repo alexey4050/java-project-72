@@ -1,9 +1,13 @@
-FROM gradle:8.12.1-jdk21
+FROM eclipse-temurin:21-jdk
 
 WORKDIR /app
 
-COPY app .
+COPY . .
 
-RUN ["./gradlew"]
+RUN ./gradlew shadowJar
 
-CMD ["java", "-jar", "app/build/libs/app-1.0-SNAPSHOT-all.jar"]
+RUN cp /app/build/libs/app.jar /app/app.jar
+
+EXPOSE 7070
+
+CMD ["java", "-jar", "build/libs/app-1.0-SNAPSHOT-all.jar"]

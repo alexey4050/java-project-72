@@ -20,9 +20,9 @@ public class App {
             config.bundledPlugins.enableDevLogging();
         });
 
-        app.get("/",ctx -> {
-                LOGGER.debug("Received request to root endpoint");
-                ctx.result("Hello World");
+        app.get("/", ctx -> {
+            LOGGER.debug("Received request to root endpoint");
+            ctx.result("Hello World");
         });
 
         return app;
