@@ -3,14 +3,19 @@ FROM eclipse-temurin:21-jdk as builder
 
 WORKDIR /app
 
-# Копируем только необходимые для сборки файлы
-COPY gradlew .
-COPY gradle gradle
-COPY build.gradle.kts .
-COPY settings.gradle.kts .
-COPY src src
+# 1. Сначала копируем только файлы для загрузки зависимостей
+COPY ./gradlew .
+COPY ./gradle ./gradle
+COPY ./build.gradle.kts .
+COPY ./settings.gradle.kts .
 
-# Собираем проект (включая зависимости)
+# 2. Скачиваем зависимости (кешируемый слой)
+RUN ./gradlew --version
+
+# 3. Копируем исходный код
+COPY ./src ./src
+
+# 4. Собираем проект
 RUN ./gradlew shadowJar --no-daemon
 
 # Финальный образ
@@ -18,11 +23,9 @@ FROM eclipse-temurin:21-jre
 
 WORKDIR /app
 
-# Копируем только собранный JAR из этапа builder
+# Копируем собранный JAR
 COPY --from=builder /app/build/libs/app.jar .
 
-# Открываем порт
 EXPOSE 7070
 
-# Запускаем приложение
 CMD ["java", "-jar", "app.jar"]
