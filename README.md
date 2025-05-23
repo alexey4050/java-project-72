@@ -13,9 +13,9 @@
 ### `:rocket:` Демо
 
 Приложение доступно по адресу:
-:point_right: [https://java-project-72-a3qj.onrender.com](https://java-project-72-a3qj.onrender.com)
+`:point_right:` [https://java-project-72-a3qj.onrender.com](https://java-project-72-a3qj.onrender.com)
 
-### 📦 Зависимости
+###  Зависимости
 
 
 
