@@ -84,8 +84,7 @@ public class App {
         });
 
         app.get("/", ctx -> {
-            LOGGER.debug("Received request to root endpoint");
-            ctx.result("index.jte");
+            ctx.render("index.jte");
         });
 
         return app;
