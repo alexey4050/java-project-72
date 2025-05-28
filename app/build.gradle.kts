@@ -1,6 +1,7 @@
 plugins {
     checkstyle
     application
+    id("io.freefair.lombok") version "8.13.1"
     id("com.github.johnrengelman.shadow") version "8.1.1"
     id("org.sonarqube") version "6.2.0.5505"
 }
@@ -24,6 +25,7 @@ dependencies {
     implementation("io.javalin:javalin:6.6.0")
     implementation("io.javalin:javalin-bundle:6.6.0")
     implementation("io.javalin:javalin-rendering:6.6.0")
+    implementation("com.fasterxml.jackson.core:jackson-databind:2.18.3")
 
     implementation("com.zaxxer:HikariCP:6.3.0")
     implementation("com.h2database:h2:2.3.232")
