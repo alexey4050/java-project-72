@@ -2,8 +2,12 @@ package hexlet.code;
 
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
+import gg.jte.ContentType;
+import gg.jte.TemplateEngine;
+import gg.jte.resolve.ResourceCodeResolver;
 import hexlet.code.repository.BaseRepository;
 import io.javalin.Javalin;
+import io.javalin.rendering.template.JavalinJte;
 import org.slf4j.LoggerFactory;
 
 import org.slf4j.Logger;
@@ -25,6 +29,12 @@ public class App {
         String port = System.getenv().getOrDefault("PORT", "7070");
         LOGGER.debug("Using port: " + port);
         return Integer.valueOf(port);
+    }
+
+    private static TemplateEngine createTemplateEngine() {
+        ClassLoader classLoader = App.class.getClassLoader();
+        ResourceCodeResolver codeResolver = new ResourceCodeResolver("templates", classLoader);
+        return TemplateEngine.create(codeResolver, ContentType.Html);
     }
 
     private static String readResourceFile(String fileName) throws IOException {
@@ -70,11 +80,12 @@ public class App {
 
         var app = Javalin.create(config -> {
             config.bundledPlugins.enableDevLogging();
+            config.fileRenderer(new JavalinJte(createTemplateEngine()));
         });
 
         app.get("/", ctx -> {
             LOGGER.debug("Received request to root endpoint");
-            ctx.result("Hello World");
+            ctx.result("index.jte");
         });
 
         return app;

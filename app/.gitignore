@@ -18,6 +18,7 @@ app/.idea
 out/
 !**/src/main/**/out/
 !**/src/test/**/out/
+jte-classes/
 
 ### Eclipse ###
 .apt_generated
