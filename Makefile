@@ -1,15 +1,22 @@
-.PHONY: build checkstyleMain checkstyleTest clean test report run sonar
+.PHONY: build
 
-checkstyleMain: ./gradlew checkstyleMain
+checkstyleMain:
+	./app/gradlew -p ./app checkstyleMain
 
-clean: ./gradlew clean
+checkstyleTest:
+	./app/gradlew -p ./app checkstyleTest
 
-build: clean ./gradlew installDist
+clean:
+	./app/gradlew -p ./app clean
 
-test:./gradlew test
+build:
+	./app/gradlew -p ./app installDist
 
-run: build ./build/install/app/bin/app
+test:
+	./app/gradlew -p ./app build
 
-sonar: build ./gradlew build sonar --info
+report:
+	./app/gradlew -p ./app jacocoTestReport
 
-report:./gradlew jacocoTestReport
+run:
+	./app/build/install/app/bin/app
