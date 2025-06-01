@@ -46,22 +46,4 @@ public class DataBase {
             return reader.lines().collect(Collectors.joining("\n"));
         }
     }
-    private static HikariDataSource initDataSource() throws IOException, SQLException {
-        var hikariConfig = new HikariConfig();
-
-        String jdbcUrl = System.getenv().getOrDefault("JDBC_DATABASE_URL", DEFAULT_JDBC_URL);
-        hikariConfig.setJdbcUrl(jdbcUrl);
-
-        var dataSource = new HikariDataSource(hikariConfig);
-        initializeDatabase(dataSource);
-        return dataSource;
-    }
-
-    private static void initializeDatabase(HikariDataSource dataSource) throws IOException, SQLException {
-        String sql = readResourceFile(SCHEMA_FILE);
-        try (var connection = dataSource.getConnection();
-             var statement = connection.createStatement()) {
-            statement.execute(sql);
-        }
-    }
 }
