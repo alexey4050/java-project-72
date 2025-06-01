@@ -4,6 +4,7 @@ plugins {
     id("io.freefair.lombok") version "8.13.1"
     id("com.github.johnrengelman.shadow") version "8.1.1"
     id("org.sonarqube") version "6.2.0.5505"
+    jacoco
 }
 
 application {
@@ -48,4 +49,17 @@ sonar {
 
 tasks.test {
     useJUnitPlatform()
+}
+
+jacoco {
+    toolVersion = "0.8.12"
+}
+
+tasks.jacocoTestReport {
+    dependsOn(tasks.test)
+    reports {
+        xml.required.set(true)
+        csv.required.set(false)
+        html.outputLocation = layout.buildDirectory.dir("jacocoHtml")
+    }
 }

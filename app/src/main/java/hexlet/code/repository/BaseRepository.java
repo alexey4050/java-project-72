@@ -17,5 +17,4 @@ public class BaseRepository {
         }
         return dataSource;
     }
-
 }
