@@ -1,33 +1,15 @@
-check-deps:
-	./gradlew dependencyUpdates -Drevision=release
+.PHONY: build checkstyleMain checkstyleTest clean test report run sonar
 
-dev:
-	./gradlew run
+checkstyleMain: ./gradlew checkstyleMain
 
-setup:
-	gradle wrapper --gradle-version 8.13
+clean: ./gradlew clean
 
-clean:
-	./gradlew clean
+build: clean ./gradlew installDist
 
-build:
-	./gradlew clean build
+test:./gradlew test
 
-start: dev
+run: build ./build/install/app/bin/app
 
-install:
-	./gradlew installDist
+sonar: build ./gradlew build sonar --info
 
-lint:
-	./gradlew checkstyleMain checkstyleTest
-
-test:
-	./gradlew test
-
-image-build:
-	docker build -t hexletcomponents/java-javalin-example:latest .
-
-image-push:
-	docker push hexletcomponents/java-javalin-example:latest
-
-.PHONY: build
+report:./gradlew jacocoTestReport
