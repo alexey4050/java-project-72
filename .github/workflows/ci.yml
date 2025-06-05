@@ -27,6 +27,8 @@ jobs:
 
       - name: Run SonarQube analysis
         workingDirectory: app
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         run: ./gradlew build sonar --info
 
       - name: Publish code coverage
