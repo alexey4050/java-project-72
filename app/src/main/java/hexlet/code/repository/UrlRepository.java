@@ -2,6 +2,7 @@ package hexlet.code.repository;
 
 import hexlet.code.model.Url;
 
+import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Timestamp;
@@ -73,6 +74,14 @@ public class UrlRepository extends BaseRepository {
                 result.add(url);
             }
             return result;
+        }
+    }
+
+    public static void removeAll() throws SQLException {
+        var sql = "DELETE FROM urls";
+        try (var conn = getDataSource().getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.executeUpdate();
         }
     }
 

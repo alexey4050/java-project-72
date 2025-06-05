@@ -8,13 +8,11 @@ import static io.javalin.rendering.template.TemplateUtil.model;
 public class RootController {
     public static void index(Context ctx) {
         var page = new BasePage();
-        if (ctx.sessionAttribute("flashType") != null) {
-            page.setFlash(
-                    ctx.sessionAttribute("flashType"),
-                    ctx.sessionAttribute("flashMessage")
-            );
-            ctx.sessionAttribute("flashType", null);
-            ctx.sessionAttribute("flashMessage", null);
+        String flashType = ctx.attribute("flashType");
+        String flashMessage = ctx.attribute("flashMessage");
+
+        if (flashType != null && flashMessage != null) {
+            page.setFlash(flashType, flashMessage);
         }
         ctx.render("index.jte", model("page", page));
     }

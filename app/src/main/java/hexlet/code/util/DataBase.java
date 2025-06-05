@@ -32,6 +32,13 @@ public class DataBase {
         return dataSource;
     }
 
+    public static void closeDataSource() {
+        if (dataSource != null) {
+            dataSource.close();
+            dataSource = null;
+        }
+    }
+
     public static void runMigrations(DataSource ds) throws SQLException, IOException {
         String sql = readResourceFile(SCHEMA_FILE);
         try (Connection conn = ds.getConnection();
