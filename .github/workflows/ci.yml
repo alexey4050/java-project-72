@@ -19,6 +19,7 @@ jobs:
         with:
           java-version: '21'
           distribution: 'temurin'
+          cache: 'gradle'
 
       - uses: gradle/gradle-build-action@v2
         with:
@@ -26,7 +27,6 @@ jobs:
           build-root-directory: app
 
       - name: Run SonarQube analysis
-        workingDirectory: app
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         run: ./gradlew build sonar --info
@@ -36,14 +36,11 @@ jobs:
         env:
           CC_TEST_REPORTER_ID: ${{secrets.CC_TEST_REPORTER_ID}}
           JACOCO_SOURCE_PATH: src/main/java
-        with:
-          workingDirectory: app
 
       - name: Prepare Jacoco report for Qlty.sh
-        workingDirectory: app
         run: |
             mkdir -p reports 
-            mv build/reports/jacoco/test/jacocoTestReport.xml reports/coverage.xml
+          mv app/build/reports/jacoco/test/jacocoTestReport.xml app/reports/coverage.xml
 
       - name: Upload coverage to Qlty.sh
         uses: qltysh/qlty-action/coverage@v1
