@@ -22,8 +22,20 @@ jobs:
 
       - uses: gradle/gradle-build-action@v2
         with:
-          arguments: build
+          arguments: build jacocoTestReport
           build-root-directory: app
+
+      - name: Prepare Jacoco report for Qlty.sh
+        workingDirectory: app
+        run: |
+            mkdir -p reports 
+            mv build/reports/jacoco/test/jacocoTestReport.xml reports/coverage.xml
+
+      - name: Upload coverage to Qlty.sh
+        uses: qltysh/qlty-action/coverage@v1
+        with:
+          token: ${{ secrets.QLTY_COVERAGE_TOKEN }}
+          files: app/reports/coverage.xml
 
       - name: Publish code coverage
         uses: paambaati/codeclimate-action@v5.0.0
