@@ -2,6 +2,8 @@
 [![Actions Status](https://github.com/alexey4050/java-project-72/actions/workflows/hexlet-check.yml/badge.svg)](https://github.com/alexey4050/java-project-72/actions)
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=alexey4050_java-project-72&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=alexey4050_java-project-72)
 [![CI](https://github.com/alexey4050/java-project-72/actions/workflows/ci.yml/badge.svg)](https://github.com/alexey4050/java-project-72/actions/workflows/ci.yml)
+[![Maintainability](https://qlty.sh/badges/61684631-6ee5-40f2-9350-c9c1dbc69496/maintainability.svg)](https://qlty.sh/gh/alexey4050/projects/java-project-72)
+[![Code Coverage](https://qlty.sh/badges/61684631-6ee5-40f2-9350-c9c1dbc69496/test_coverage.svg)](https://qlty.sh/gh/alexey4050/projects/java-project-72)
 [![Quality gate](https://sonarcloud.io/api/project_badges/quality_gate?project=alexey4050_java-project-72)](https://sonarcloud.io/summary/new_code?id=alexey4050_java-project-72)
 
 ##  Java project 72
