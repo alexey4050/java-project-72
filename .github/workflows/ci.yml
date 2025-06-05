@@ -25,6 +25,18 @@ jobs:
           arguments: build jacocoTestReport
           build-root-directory: app
 
+      - name: Run SonarQube analysis
+        workingDirectory: app
+        run: ./gradlew build sonar --info
+
+      - name: Publish code coverage
+        uses: paambaati/codeclimate-action@v5.0.0
+        env:
+          CC_TEST_REPORTER_ID: ${{secrets.CC_TEST_REPORTER_ID}}
+          JACOCO_SOURCE_PATH: src/main/java
+        with:
+          workingDirectory: app
+
       - name: Prepare Jacoco report for Qlty.sh
         workingDirectory: app
         run: |
@@ -37,10 +49,3 @@ jobs:
           token: ${{ secrets.QLTY_COVERAGE_TOKEN }}
           files: app/reports/coverage.xml
 
-      - name: Publish code coverage
-        uses: paambaati/codeclimate-action@v5.0.0
-        env:
-          CC_TEST_REPORTER_ID: ${{secrets.CC_TEST_REPORTER_ID}}
-          JACOCO_SOURCE_PATH: app/src/main/java
-        with:
-          coverageCommand: make report
