@@ -6,6 +6,8 @@ build/
 .idea
 app/.gradle
 app/.idea
+MY_SSH_KEY
+MY_SSH_KEY.pub
 
 ### IntelliJ IDEA ###
 .idea/modules.xml
