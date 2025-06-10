@@ -22,6 +22,7 @@ dependencies {
     testImplementation("org.assertj:assertj-core:3.27.3")
     testImplementation(platform("org.junit:junit-bom:5.10.0"))
     testImplementation("org.junit.jupiter:junit-jupiter")
+    testImplementation("com.squareup.okhttp3:mockwebserver:4.12.0")
 
     implementation("org.slf4j:slf4j-simple:2.0.17")
     implementation("io.javalin:javalin:6.6.0")
@@ -37,6 +38,11 @@ dependencies {
     annotationProcessor("org.projectlombok:lombok:1.18.28")
 
     implementation("gg.jte:jte:3.2.1")
+
+    implementation("com.konghq:unirest-java:3.14.1")
+    implementation("org.apache.httpcomponents:httpclient:4.5.13")
+
+    implementation("org.jsoup:jsoup:1.17.2")
 
 }
 

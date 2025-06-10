@@ -53,4 +53,12 @@ public class DataBase {
             return reader.lines().collect(Collectors.joining("\n"));
         }
     }
+
+    public static void cleanBase() throws IOException, SQLException {
+        try (var conn = DataBase.getDataSource().getConnection();
+             var stmt = conn.createStatement()) {
+            stmt.execute("DELETE FROM url_checks");
+            stmt.execute("DELETE FROM urls");
+        }
+    }
 }

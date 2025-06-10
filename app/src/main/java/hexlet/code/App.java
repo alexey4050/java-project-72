@@ -5,6 +5,7 @@ import gg.jte.ContentType;
 import gg.jte.TemplateEngine;
 import gg.jte.resolve.ResourceCodeResolver;
 import hexlet.code.controller.RootController;
+import hexlet.code.controller.UrlChecksController;
 import hexlet.code.controller.UrlsController;
 import hexlet.code.repository.BaseRepository;
 import hexlet.code.util.DataBase;
@@ -65,14 +66,13 @@ public class App {
         app.before(ctx -> {
             ctx.attribute("flashMessage", ctx.sessionAttribute("flashMessage"));
             ctx.attribute("flashType", ctx.sessionAttribute("flashType"));
-            ctx.sessionAttribute("flashMessage", null);
-            ctx.sessionAttribute("flashType", null);
         });
 
         app.get(NamedRoutes.rootPath(), RootController::index);
         app.get(NamedRoutes.urlsPath(), UrlsController::index);
         app.post(NamedRoutes.urlsPath(), UrlsController::create);
         app.get(NamedRoutes.urlPath("{id}"), UrlsController::show);
+        app.post(NamedRoutes.urlChecksPath("{id}"), UrlChecksController::create);
 
         return app;
     }

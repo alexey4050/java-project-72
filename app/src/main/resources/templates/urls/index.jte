@@ -1,4 +1,5 @@
 @import hexlet.code.dto.UrlsPage
+@import java.time.format.DateTimeFormatter
 
 @param UrlsPage page
 
@@ -19,18 +20,23 @@ content = @`
             <tbody>
             @if(page.getUrls().isEmpty())
                 <tr>
-                    <td colspan="3" class="text-center">Пока нет добавленных страниц.</td>
+                    <td colspan="4" class="text-center">Пока нет добавленных страниц.</td>
                 </tr>
             @else
-            @for (var url : page.getUrls())
-                <tr>
-                    <td>${url.getId()}</td>
-                    <td><a href="/urls/${url.getId()}">${url.getName()}</a></td>
-                    <td></td>
-                    <td></td>
-                </tr>
-            @endfor
-            @endif
+                @for (var url : page.getUrls())
+                    <tr>
+                        <td>${url.getId()}</td>
+                        <td><a href="/urls/${url.getId()}">${url.getName()}</a></td>
+                        <td>@if(page.getLastChecks().containsKey(url.getId()))
+                            ${page.getLastChecks().get(url.getId()).getCreatedAt()
+                                            .format(DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm"))}
+                            @endif</td>
+                        <td>@if(page.getLastChecks().containsKey(url.getId()))
+                            ${page.getLastChecks().get(url.getId()).getStatusCode()}
+                            @endif</td>
+                        </tr>
+                    @endfor
+                @endif
             </tbody>
         </table>
     </div>
