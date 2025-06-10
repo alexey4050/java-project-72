@@ -17,6 +17,11 @@ import java.util.Optional;
 
 public class UrlChecksController {
     private static final Logger LOGGER = LoggerFactory.getLogger(UrlsController.class);
+    private static final String FLASH_TYPE = "flashType";
+    private static final String FLASH_MESSAGE = "flashMessage";
+    private static final String DANGER_TYPE = "danger";
+    private static final String NOT_FOUND_MESSAGE = "Страница не найдена";
+    private static final String SUCCESS_TYPE = "success";
 
     private UrlChecksController() {
         throw new UnsupportedOperationException("Utility class");
@@ -27,8 +32,8 @@ public class UrlChecksController {
         var optionalUrl = UrlRepository.findById(urlId);
 
         if (optionalUrl.isEmpty()) {
-            ctx.sessionAttribute("flashType", "danger");
-            ctx.sessionAttribute("flashMessage", "Страница не найдена");
+            ctx.sessionAttribute(FLASH_TYPE, DANGER_TYPE);
+            ctx.sessionAttribute(FLASH_MESSAGE, NOT_FOUND_MESSAGE);
             ctx.redirect(NamedRoutes.urlsPath());
             return;
         }
@@ -51,12 +56,12 @@ public class UrlChecksController {
 
             UrlCheckRepository.save(urlCheck);
 
-            ctx.sessionAttribute("flashType", "success");
-            ctx.sessionAttribute("flashMessage", "Страница успешно проверена");
+            ctx.sessionAttribute(FLASH_TYPE, SUCCESS_TYPE);
+            ctx.sessionAttribute(FLASH_MESSAGE, "Страница успешно проверена");
         } catch (Exception e) {
             LOGGER.error("Check failed for URL ID: " + urlId, e);
-            ctx.sessionAttribute("flashType", "danger");
-            ctx.sessionAttribute("flashMessage", "Ошибка при проверке: " + e.getMessage());
+            ctx.sessionAttribute(FLASH_TYPE, DANGER_TYPE);
+            ctx.sessionAttribute(FLASH_MESSAGE, "Ошибка при проверке: " + e.getMessage());
         }
         ctx.redirect(NamedRoutes.urlPath(urlId));
     }

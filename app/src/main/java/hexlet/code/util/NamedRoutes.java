@@ -1,26 +1,27 @@
 package hexlet.code.util;
 
 public class NamedRoutes {
+    private static final String URLS_BASE_PATH = "/urls/";
     public static String rootPath() {
         return "/";
     }
     public static String urlsPath() {
-        return "/urls";
+        return URLS_BASE_PATH;
     }
 
     public static String urlPath(Long id) {
-        return "/urls/" + id;
+        return URLS_BASE_PATH + id;
     }
 
     public static String urlPath(String id) {
-        return "/urls/" + id;
+        return URLS_BASE_PATH + id;
     }
 
     public static String urlChecksPath(String urlId) {
-        return "/urls/" + urlId + "/checks";
+        return URLS_BASE_PATH + urlId + "/checks";
     }
 
     public static String urlChecksPath(Long urlId) {
-        return "/urls/" + urlId + "/checks";
+        return URLS_BASE_PATH + urlId + "/checks";
     }
 }

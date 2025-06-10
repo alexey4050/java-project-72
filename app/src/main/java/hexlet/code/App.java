@@ -22,6 +22,8 @@ import java.sql.SQLException;
 
 public class App {
     private static final Logger LOGGER = LoggerFactory.getLogger(App.class);
+    private static final String FLASH_TYPE = "flashType";
+    private static final String FLASH_MESSAGE = "flashMessage";
 
     private static int getPort() {
         String port = System.getenv().getOrDefault("PORT", "7070");
@@ -69,8 +71,8 @@ public class App {
         });
 
         app.before(ctx -> {
-            ctx.attribute("flashMessage", ctx.sessionAttribute("flashMessage"));
-            ctx.attribute("flashType", ctx.sessionAttribute("flashType"));
+            ctx.attribute(FLASH_MESSAGE, ctx.sessionAttribute(FLASH_MESSAGE));
+            ctx.attribute(FLASH_TYPE, ctx.sessionAttribute(FLASH_TYPE));
         });
 
         app.get(NamedRoutes.rootPath(), RootController::index);

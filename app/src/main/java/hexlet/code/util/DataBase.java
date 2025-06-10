@@ -19,6 +19,10 @@ public class DataBase {
     private static final String DEFAULT_JDBC_URL = "jdbc:h2:mem:project;DB_CLOSE_DELAY=-1;";
     private static final String SCHEMA_FILE = "schema.sql";
 
+    private DataBase() {
+        throw new UnsupportedOperationException("This is a utility class and cannot be instantiated");
+    }
+
     public static DataSource getDataSource() throws SQLException, IOException {
         if (dataSource == null) {
             HikariConfig config = new HikariConfig();

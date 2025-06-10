@@ -22,13 +22,18 @@ import static io.javalin.rendering.template.TemplateUtil.model;
 
 public final class UrlsController {
     private static final Logger LOGGER = LoggerFactory.getLogger(UrlsController.class);
+    public static final String FLASH_TYPE = "flashType";
+    private static final String FLASH_MESSAGE = "flashMessage";
+    private static final String DANGER_TYPE = "danger";
+    private static final String INFO_TYPE = "info";
+    private static final String SUCCESS_TYPE = "success";
 
     public static void create(Context ctx) {
         String urlString = ctx.formParam("url");
         try {
             if (urlString == null || urlString.isBlank()) {
-                ctx.sessionAttribute("flashType", "danger");
-                ctx.sessionAttribute("flashMessage", "URL не может быть пустым");
+                ctx.sessionAttribute(FLASH_TYPE, DANGER_TYPE);
+                ctx.sessionAttribute(FLASH_MESSAGE, "URL не может быть пустым");
                 ctx.redirect(NamedRoutes.rootPath());
                 return;
             }
@@ -36,8 +41,8 @@ public final class UrlsController {
             String normalizedUrl = UrlUtil.normalizeUrl(urlString);
 
             if (UrlRepository.findByName(normalizedUrl).isPresent()) {
-                ctx.sessionAttribute("flashType", "info");
-                ctx.sessionAttribute("flashMessage", "Сайт уже добавлен");
+                ctx.sessionAttribute(FLASH_TYPE, INFO_TYPE);
+                ctx.sessionAttribute(FLASH_MESSAGE, "Сайт уже добавлен");
                 ctx.redirect(NamedRoutes.urlsPath());
                 return;
             }
@@ -45,16 +50,16 @@ public final class UrlsController {
             Url url = new Url(normalizedUrl);
             UrlRepository.save(url);
 
-            ctx.sessionAttribute("flashType", "success");
-            ctx.sessionAttribute("flashMessage", "Сайт успешно добавлен!");
+            ctx.sessionAttribute(FLASH_TYPE, SUCCESS_TYPE);
+            ctx.sessionAttribute(FLASH_MESSAGE, "Сайт успешно добавлен!");
             ctx.redirect(NamedRoutes.urlsPath());
         } catch (MalformedURLException | URISyntaxException e) {
-            ctx.sessionAttribute("flashType", "danger");
-            ctx.sessionAttribute("flashMessage", "Некорректный URL: " + urlString);
+            ctx.sessionAttribute(FLASH_TYPE, DANGER_TYPE);
+            ctx.sessionAttribute(FLASH_MESSAGE, "Некорректный URL: " + urlString);
             ctx.redirect(NamedRoutes.rootPath());
         } catch (Exception e) {
-            ctx.sessionAttribute("flashType", "danger");
-            ctx.sessionAttribute("flashMessage", "Произошла непредвиденная ошибка: " + e.getMessage());
+            ctx.sessionAttribute(FLASH_TYPE, DANGER_TYPE);
+            ctx.sessionAttribute(FLASH_MESSAGE, "Произошла непредвиденная ошибка: " + e.getMessage());
             ctx.redirect(NamedRoutes.rootPath());
         }
     }
@@ -72,18 +77,18 @@ public final class UrlsController {
 
             var page = new UrlsPage(urls, lastChecks);
 
-            String flashType = ctx.sessionAttribute("flashType");
-            String flashMessage = ctx.sessionAttribute("flashMessage");
+            String flashType = ctx.sessionAttribute(FLASH_TYPE);
+            String flashMessage = ctx.sessionAttribute(FLASH_MESSAGE);
 
             if (flashType != null && flashMessage != null) {
                 page.setFlash(flashType, flashMessage);
-                ctx.sessionAttribute("flashType", null);
-                ctx.sessionAttribute("flashMessage", null);
+                ctx.sessionAttribute(FLASH_TYPE, null);
+                ctx.sessionAttribute(FLASH_MESSAGE, null);
             }
             ctx.render("urls/index.jte", model("page", page));
         } catch (SQLException e) {
-            ctx.sessionAttribute("flashMessage", "Ошибка при загрузке списка сайтов");
-            ctx.sessionAttribute("flashType", "danger");
+            ctx.sessionAttribute(FLASH_MESSAGE, "Ошибка при загрузке списка сайтов");
+            ctx.sessionAttribute(FLASH_TYPE, DANGER_TYPE);
             ctx.redirect(NamedRoutes.urlsPath());
         }
     }
@@ -107,8 +112,8 @@ public final class UrlsController {
             ctx.status(400);
             ctx.render("errors/400.jte");
         } catch (SQLException e) {
-            ctx.sessionAttribute("flashMessage", "Ошибка базы данных: " + e.getMessage());
-            ctx.sessionAttribute("flashType", "danger");
+            ctx.sessionAttribute(FLASH_MESSAGE, "Ошибка базы данных: " + e.getMessage());
+            ctx.sessionAttribute(FLASH_TYPE, DANGER_TYPE);
             ctx.redirect(NamedRoutes.urlsPath());
         }
     }

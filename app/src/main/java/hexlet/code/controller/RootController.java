@@ -6,6 +6,9 @@ import io.javalin.http.Context;
 import static io.javalin.rendering.template.TemplateUtil.model;
 
 public class RootController {
+    private static final String FLASH_TYPE = "flashType";
+    private static final String FLASH_MESSAGE = "flashMessage";
+
     private RootController() {
         throw new UnsupportedOperationException("This is a utility class and cannot be instantiated");
     }
@@ -13,8 +16,8 @@ public class RootController {
     public static void index(Context ctx) {
 
         var page = new BasePage();
-        String flashType = ctx.attribute("flashType");
-        String flashMessage = ctx.attribute("flashMessage");
+        String flashType = ctx.attribute(FLASH_TYPE);
+        String flashMessage = ctx.attribute(FLASH_MESSAGE);
 
         if (flashType != null && flashMessage != null) {
             page.setFlash(flashType, flashMessage);
