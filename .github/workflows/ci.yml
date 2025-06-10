@@ -7,41 +7,60 @@ on:
   pull_request:
     branches:
       - main
+    types: [opened, synchronize, reopened]
 
 jobs:
   build:
+    name: Build, Test and Analyze
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Важно для SonarQube анализа
 
       - name: Set up JDK 21
-        uses: actions/setup-java@v3
+        uses: actions/setup-java@v4
         with:
           java-version: '21'
           distribution: 'temurin'
           cache: 'gradle'
 
-      - name: Build with Gradle and generate Jacoco report
+      - name: Cache SonarQube packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.sonar/cache
+          key: ${{ runner.os }}-sonar
+          restore-keys: ${{ runner.os }}-sonar
+
+      - name: Cache Gradle packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.gradle/caches
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle') }}
+          restore-keys: ${{ runner.os }}-gradle
+
+      - name: Build with Gradle and generate reports
         uses: gradle/gradle-build-action@v2
         with:
-          arguments: test jacocoTestReport
+          arguments: build test jacocoTestReport
           build-root-directory: app
 
       - name: Run SonarQube analysis
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
         run: |
           cd app && ./gradlew sonar \
             -Dsonar.coverage.jacoco.xmlReportPaths=build/reports/jacoco/test/jacocoTestReport.xml \
-            -Dsonar.java.binaries=build/classes 
+            -Dsonar.java.binaries=build/classes \
+            -Dsonar.junit.reportPaths=build/test-results/test \
+            --info
 
       - name: Publish code coverage to CodeClimate
         uses: paambaati/codeclimate-action@v5.0.0
         env:
-          CC_TEST_REPORTER_ID: ${{secrets.CODECLIMATE_API_KEY}}
+          CC_TEST_REPORTER_ID: ${{ secrets.CODECLIMATE_API_KEY }}
           JACOCO_SOURCE_PATH: app/src/main/java
 
       - name: Prepare Jacoco report for Qlty.sh
