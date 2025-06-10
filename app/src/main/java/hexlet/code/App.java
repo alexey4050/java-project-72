@@ -52,11 +52,16 @@ public class App {
         try {
             dataSource = DataBase.getDataSource();
             DataBase.runMigrations(dataSource);
+
+            if (!(dataSource instanceof HikariDataSource)) {
+                throw new IllegalStateException("Expected HikariDataSource but got " + dataSource.getClass());
+            }
+            BaseRepository.setDataSource((HikariDataSource) dataSource);
         } catch (SQLException | IOException e) {
             LOGGER.error("Ошибка при инициализации базы данных: {}", e.getMessage(), e);
-            throw new IllegalArgumentException("Не удалось инициализировать базу данных", e);
+            System.exit(1);
         }
-        BaseRepository.setDataSource((HikariDataSource) dataSource);
+
 
         var app = Javalin.create(config -> {
             config.bundledPlugins.enableDevLogging();

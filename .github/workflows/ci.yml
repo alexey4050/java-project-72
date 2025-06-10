@@ -62,7 +62,9 @@ jobs:
         uses: paambaati/codeclimate-action@v5.0.0
         env:
           CC_TEST_REPORTER_ID: ${{ secrets.CODECLIMATE_API_KEY }}
-          JACOCO_SOURCE_PATH: app/src/main/java
+        with:
+          coverageCommand: ./gradlew jacocoTestReport
+          debug: true
 
       - name: Set up Code Coverage for Qlty.sh
         run: |
