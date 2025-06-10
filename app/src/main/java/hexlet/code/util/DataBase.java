@@ -58,7 +58,7 @@ public final class DataBase {
         }
     }
 
-    public static void cleanBase() throws IOException, SQLException {
+    public static void cleanBase() throws SQLException {
         try (var conn = DataBase.getDataSource().getConnection();
              var stmt = conn.createStatement()) {
             stmt.execute("DELETE FROM url_checks");
