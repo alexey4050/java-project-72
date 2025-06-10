@@ -52,8 +52,8 @@ jobs:
         env:
           CC_TEST_REPORTER_ID: ${{ secrets.CODECLIMATE_API_KEY }}
         with:
-          coverageCommand: ./gradlew jacocoTestReport
-          coverageLocations: ${{ github.workspace }}/app/build/reports/jacoco/test/jacocoTestReport.xml
+          coverageCommand: ./app/gradlew jacocoTestReport -p app
+          coverageLocations: ${{ github.workspace }}/app/build/reports/jacoco/test/jacocoTestReport.xml:jacoco
           debug: true
 
       - name: Prepare coverage report for Qlty.sh
