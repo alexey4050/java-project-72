@@ -5,7 +5,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 
-public class UrlUtil {
+public final class UrlUtil {
     private UrlUtil() {
         throw new UnsupportedOperationException("Это служебный класс, создание экземпляров запрещено");
     }

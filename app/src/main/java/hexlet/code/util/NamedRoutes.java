@@ -1,6 +1,6 @@
 package hexlet.code.util;
 
-public class NamedRoutes {
+public final class NamedRoutes {
     private static final String ROOT_PATH = "/";
     private static final String URLS_BASE_PATH = "/urls/";
 
