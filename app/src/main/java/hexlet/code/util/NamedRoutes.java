@@ -1,9 +1,14 @@
 package hexlet.code.util;
 
 public class NamedRoutes {
+    private static final String ROOT_PATH = "/";
     private static final String URLS_BASE_PATH = "/urls/";
+
+    private NamedRoutes() {
+        throw new UnsupportedOperationException("Это служебный класс, создание экземпляров запрещено");
+    }
     public static String rootPath() {
-        return "/";
+        return ROOT_PATH;
     }
     public static String urlsPath() {
         return URLS_BASE_PATH;

@@ -6,6 +6,9 @@ import java.net.URISyntaxException;
 import java.net.URL;
 
 public class UrlUtil {
+    private UrlUtil() {
+        throw new UnsupportedOperationException("Это служебный класс, создание экземпляров запрещено");
+    }
     public static String normalizeUrl(String urlString) throws URISyntaxException, MalformedURLException {
         URI uri = new URI(urlString);
         URL url = uri.toURL();

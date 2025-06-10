@@ -15,8 +15,8 @@ import org.slf4j.LoggerFactory;
 import java.sql.SQLException;
 import java.util.Optional;
 
-public class UrlChecksController {
-    private static final Logger LOGGER = LoggerFactory.getLogger(UrlsController.class);
+public final class UrlChecksController {
+    private static final Logger LOGGER = LoggerFactory.getLogger(UrlChecksController.class);
     private static final String FLASH_TYPE = "flashType";
     private static final String FLASH_MESSAGE = "flashMessage";
     private static final String DANGER_TYPE = "danger";

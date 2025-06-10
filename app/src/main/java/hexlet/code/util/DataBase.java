@@ -14,7 +14,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.stream.Collectors;
 
-public class DataBase {
+public final class DataBase {
     private static HikariDataSource dataSource;
     private static final String DEFAULT_JDBC_URL = "jdbc:h2:mem:project;DB_CLOSE_DELAY=-1;";
     private static final String SCHEMA_FILE = "schema.sql";
@@ -23,7 +23,7 @@ public class DataBase {
         throw new UnsupportedOperationException("This is a utility class and cannot be instantiated");
     }
 
-    public static DataSource getDataSource() throws SQLException, IOException {
+    public static DataSource getDataSource() {
         if (dataSource == null) {
             HikariConfig config = new HikariConfig();
             String jdbcUrl = System.getenv().getOrDefault("JDBC_DATABASE_URL", DEFAULT_JDBC_URL);

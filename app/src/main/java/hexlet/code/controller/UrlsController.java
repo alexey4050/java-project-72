@@ -28,6 +28,10 @@ public final class UrlsController {
     private static final String INFO_TYPE = "info";
     private static final String SUCCESS_TYPE = "success";
 
+    private UrlsController() {
+        throw new UnsupportedOperationException("Это служебный класс, создание экземпляров запрещено");
+    }
+
     public static void create(Context ctx) {
         String urlString = ctx.formParam("url");
         try {
