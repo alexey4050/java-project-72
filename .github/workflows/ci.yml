@@ -25,10 +25,19 @@ jobs:
           arguments: build test jacocoTestReport
           build-root-directory: app
 
-      - name: Verify JaCoCo report exists
+      - name: Verify and prepare reports
+        id: prepare-reports
         run: |
-          ls -la app/build/reports/jacoco/test/
-          test -f app/build/reports/jacoco/test/jacocoTestReport.xml || echo "JaCoCo report not found!"
+          # Проверяем существование файла через shell
+          if [ -f "app/build/reports/jacoco/test/jacocoTestReport.xml" ]; then
+            echo "JaCoCo report found"
+            mkdir -p reports
+            cp app/build/reports/jacoco/test/jacocoTestReport.xml reports/coverage.xml
+            echo "report_prepared=true" >> $GITHUB_OUTPUT
+          else
+            echo "JaCoCo report not found!"
+            echo "report_prepared=false" >> $GITHUB_OUTPUT
+          fi
 
       - name: Prepare reports for Qlty.sh
         if: success() && fileExists('app/build/reports/jacoco/test/jacocoTestReport.xml')
