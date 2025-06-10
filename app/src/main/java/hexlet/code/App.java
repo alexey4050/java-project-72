@@ -25,7 +25,7 @@ public class App {
 
     private static int getPort() {
         String port = System.getenv().getOrDefault("PORT", "7070");
-        LOGGER.debug("Using port: " + port);
+        LOGGER.debug("Using port: {}", port);
         return Integer.valueOf(port);
     }
 
@@ -54,7 +54,7 @@ public class App {
             DataBase.runMigrations(dataSource);
         } catch (SQLException | IOException e) {
             LOGGER.error("Ошибка при инициализации базы данных: {}", e.getMessage(), e);
-            throw new RuntimeException("Не удалось инициализировать базу данных", e);
+            throw new IllegalArgumentException("Не удалось инициализировать базу данных", e);
         }
         BaseRepository.setDataSource((HikariDataSource) dataSource);
 
