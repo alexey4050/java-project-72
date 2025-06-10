@@ -16,7 +16,8 @@ import java.util.Optional;
 
 
 public class UrlCheckRepository extends BaseRepository {
-    private static final Logger logger = LoggerFactory.getLogger(UrlCheckRepository.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(UrlCheckRepository.class);
+
     public static void save(UrlCheck urlCheck) throws SQLException {
         String sql = "INSERT INTO url_checks (url_id, status_code, title, h1,"
                 + " description, created_at) VALUES (?, ?, ?, ?, ?, ?)";
@@ -41,7 +42,7 @@ public class UrlCheckRepository extends BaseRepository {
                 throw new SQLException("Creating check failed, no ID obtained.");
             }
         } catch (SQLException e) {
-            logger.error("Failed to save UrlCheck for URL ID: {}", urlCheck.getUrlId(), e);
+            LOGGER.error("Failed to save UrlCheck for URL ID: {}", urlCheck.getUrlId(), e);
             throw e;
         }
     }
@@ -62,7 +63,7 @@ public class UrlCheckRepository extends BaseRepository {
     }
 
     public static Optional<UrlCheck> getLastCheckByUrlId(Long urlId) throws SQLException {
-        String sql =  "SELECT * FROM url_checks WHERE url_id = ? "
+        String sql = "SELECT * FROM url_checks WHERE url_id = ? "
                 + "ORDER BY created_at DESC FETCH FIRST 1 ROW ONLY";
         try (var conn = getDataSource().getConnection();
              var stmt = conn.prepareStatement(sql)) {
@@ -70,16 +71,16 @@ public class UrlCheckRepository extends BaseRepository {
             try (var resultSet = stmt.executeQuery()) {
                 if (resultSet.next()) {
                     return Optional.of(mapRowToUrlCheck(resultSet));
+                }
+                return Optional.empty();
             }
-            return Optional.empty();
-        }
-    }  catch (SQLException e) {
-            logger.error("Failed to get last check for URL ID: {}", urlId, e);
+        } catch (SQLException e) {
+            LOGGER.error("Failed to get last check for URL ID: {}", urlId, e);
             throw e;
         }
     }
 
-private static UrlCheck mapRowToUrlCheck(ResultSet resultSet) throws SQLException {
+    private static UrlCheck mapRowToUrlCheck(ResultSet resultSet) throws SQLException {
         UrlCheck check = new UrlCheck(
                 resultSet.getInt("status_code"),
                 resultSet.getString("title"),

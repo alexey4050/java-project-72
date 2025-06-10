@@ -16,8 +16,6 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.BeforeEach;
 
-
-
 import java.io.IOException;
 import java.net.URI;
 import java.net.http.HttpClient;
@@ -57,12 +55,13 @@ public class AppTest {
         DataBase.closeDataSource();
         Unirest.shutDown();
     }
-        @BeforeEach
-        void setupEach() throws SQLException, IOException {
-            DataBase.cleanBase();
-            app = App.getApp();
-            app.start(0);
-        }
+
+    @BeforeEach
+    void setupEach() throws SQLException, IOException {
+        DataBase.cleanBase();
+        app = App.getApp();
+        app.start(0);
+    }
 
     @AfterEach
     void tearDownEach() {
@@ -70,7 +69,7 @@ public class AppTest {
     }
 
     @Test
-    void testCreateCheck() throws Exception {
+    public void testCreateCheck() throws Exception {
         String html = Files.readString(Paths.get("src/test/resources/mock_response.html"));
 
         mockWebServer.enqueue(new MockResponse()
@@ -107,7 +106,7 @@ public class AppTest {
     }
 
     @Test
-    void testIndexPage() throws Exception {
+    public void testIndexPage() throws Exception {
         var client = HttpClient.newHttpClient();
         var request = HttpRequest.newBuilder()
                 .uri(URI.create("http://localhost:" + app.port() + "/"))
@@ -121,7 +120,7 @@ public class AppTest {
     }
 
     @Test
-    void testShowUrl() throws Exception {
+    public void testShowUrl() throws Exception {
         var url = new Url(mockUrl);
         UrlRepository.save(url);
 
@@ -138,7 +137,7 @@ public class AppTest {
     }
 
     @Test
-    void testCheckNonExistingUrl() throws Exception {
+    public void testCheckNonExistingUrl() throws Exception {
         var client = HttpClient.newHttpClient();
         var request = HttpRequest.newBuilder()
                 .uri(URI.create("http://localhost:" + app.port() + "/urls/999/checks"))
@@ -151,7 +150,7 @@ public class AppTest {
     }
 
     @Test
-    void testCreateUrlWithInvalidData() throws Exception {
+    public void testCreateUrlWithInvalidData() throws Exception {
         var client = HttpClient.newHttpClient();
         var formData = "url=invalid-url";
         var request = HttpRequest.newBuilder()

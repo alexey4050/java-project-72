@@ -26,25 +26,28 @@ jobs:
       - name: Build with Gradle and generate Jacoco report
         uses: gradle/gradle-build-action@v2
         with:
-          arguments: build jacocoTestReport
+          arguments: test jacocoTestReport
           build-root-directory: app
 
       - name: Run SonarQube analysis
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
         run: |
-          cd app && ./gradlew build sonar --info # <-- ИСПРАВЛЕНО: Добавлено 'cd app &&'
+          cd app && ./gradlew sonar \
+            -Dsonar.coverage.jacoco.xmlReportPaths=build/reports/jacoco/test/jacocoTestReport.xml \
+            -Dsonar.java.binaries=build/classes 
 
       - name: Publish code coverage to CodeClimate
         uses: paambaati/codeclimate-action@v5.0.0
         env:
-          CC_TEST_REPORTER_ID: ${{secrets.CC_TEST_REPORTER_ID}}
+          CC_TEST_REPORTER_ID: ${{secrets.CODECLIMATE_API_KEY}}
           JACOCO_SOURCE_PATH: app/src/main/java
 
       - name: Prepare Jacoco report for Qlty.sh
         run: |
-          mkdir -p app/reports # <-- ИСПРАВЛЕНО: Отступ 4 пробела и путь 'app/reports'
-          mv app/build/reports/jacoco/test/jacocoTestReport.xml app/reports/coverage.xml # <-- ИСПРАВЛЕНО: Отступ 4 пробела
+          mkdir -p app/reports 
+          mv app/build/reports/jacoco/test/jacocoTestReport.xml app/reports/coverage.xml 
 
       - name: Upload coverage to Qlty.sh
         uses: qltysh/qlty-action/coverage@v1

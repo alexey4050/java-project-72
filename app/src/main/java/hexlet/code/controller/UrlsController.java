@@ -85,8 +85,8 @@ public final class UrlsController {
             ctx.sessionAttribute("flashMessage", "Ошибка при загрузке списка сайтов");
             ctx.sessionAttribute("flashType", "danger");
             ctx.redirect(NamedRoutes.urlsPath());
-    }
         }
+    }
 
     public static void show(Context ctx) throws SQLException {
         try {
