@@ -47,19 +47,6 @@ jobs:
           arguments: build test jacocoTestReport
           build-root-directory: app
 
-      - name: Run SonarQube analysis
-        env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        run: |
-          cd app && ./gradlew sonar \
-            -Dsonar.projectKey=alexey4050_java-project-72 \
-            -Dsonar.organization=alexey4050 \
-            -Dsonar.host.url=$SONAR_HOST_URL \
-            -Dsonar.login=$SONAR_TOKEN \
-            -Dsonar.coverage.jacoco.xmlReportPaths=build/reports/jacoco/test/jacocoTestReport.xml \
-            -Dsonar.java.binaries=build/classes \
-            --info
-
       - name: Publish code coverage to CodeClimate
         uses: paambaati/codeclimate-action@v5.0.0
         env:
