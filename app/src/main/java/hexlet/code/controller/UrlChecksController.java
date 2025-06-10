@@ -18,6 +18,10 @@ import java.util.Optional;
 public class UrlChecksController {
     private static final Logger LOGGER = LoggerFactory.getLogger(UrlsController.class);
 
+    private UrlChecksController() {
+        throw new UnsupportedOperationException("Utility class");
+    }
+
     public static void create(Context ctx) throws SQLException {
         Long urlId = ctx.pathParamAsClass("id", Long.class).get();
         var optionalUrl = UrlRepository.findById(urlId);
