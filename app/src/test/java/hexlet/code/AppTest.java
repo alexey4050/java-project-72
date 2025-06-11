@@ -164,4 +164,26 @@ public class AppTest {
         assertEquals(302, response.statusCode());
         assertFalse(response.body().contains("Некорректный URL"));
     }
+
+    @Test
+    public void testCheckWithServerError() throws Exception {
+        mockWebServer.enqueue(new MockResponse().setResponseCode(500));
+
+        var url = new Url(mockUrl);
+        UrlRepository.save(url);
+
+        var client = HttpClient.newHttpClient();
+        var request = HttpRequest.newBuilder()
+                .uri(URI.create("http://localhost:" + app.port() + "/urls/" + url.getId() + "/checks"))
+                .POST(HttpRequest.BodyPublishers.noBody())
+                .build();
+
+        var response = client.send(request, HttpResponse.BodyHandlers.ofString());
+
+        assertEquals(302, response.statusCode());
+
+        var checks = UrlCheckRepository.getChecksByUrlId(url.getId());
+        assertFalse(checks.isEmpty());
+        assertEquals(500, checks.get(0).getStatusCode());
+    }
 }
