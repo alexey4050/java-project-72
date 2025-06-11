@@ -18,22 +18,16 @@ jobs:
           java-version: '21'
           distribution: 'temurin'
 
-      - name: Grant gradlew permissions
-        run: chmod +x app/gradlew
-
-      - name: Build and test
-        run: app/./gradlew clean test jacocoTestReport
-
-      - name: Verify JaCoCo report
-        run: |
-          ls -la app/build/reports/jacoco/test/
-          test -f app/build/reports/jacoco/test/jacocoTestReport.xml || exit 1
-
-      - name: Prepare reports directory
-        run: mkdir -p reports
+      - uses: gradle/gradle-build-action@v2
+        with:
+          arguments: build
+          build-root-directory: app
 
       - name: Upload to Qlty.sh
         uses: qltysh/qlty-action/coverage@v1
-        with:
+        env:
           token: ${{ secrets.QLTY_COVERAGE_TOKEN }}
-          files: build/reports/jacoco/test/jacocoTestReport.xml
+          files: app/build/reports/jacoco/test/jacocoTestReport.xml
+        with:
+          coverageCommand: make report
+          coverageLocations: ${{github.workspace}}/app/build/reports/jacoco/test/jacocoTestReport.xml:jacoco

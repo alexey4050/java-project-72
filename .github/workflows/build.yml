@@ -21,11 +21,10 @@ jobs:
           java-version: '21'
           distribution: 'temurin'
 
-      - name: Grant gradlew permissions
-        run: chmod +x app/gradlew
-
-      - name: Build with Gradle
-        run: app/./gradlew build
+      - uses: gradle/gradle-build-action@v2
+        with:
+          arguments: build
+          build-root-directory: app
 
       - name: SonarCloud Scan
         env:
