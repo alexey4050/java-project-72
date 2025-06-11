@@ -14,7 +14,6 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-          path: app  # Указываем путь к проекту
 
       - name: Set up JDK 21
         uses: actions/setup-java@v4
@@ -23,17 +22,15 @@ jobs:
           distribution: 'temurin'
 
       - name: Grant gradlew permissions
-        run: chmod +x app/gradlew
+        run: chmod +x gradlew
 
       - name: Build with Gradle
-        working-directory: ./app
         run: ./gradlew build
 
       - name: SonarCloud Scan
-        working-directory: ./app
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Необходимо для PR-анализ
         run: |
           ./gradlew sonar \
             -Dsonar.projectKey=your-project-key \
