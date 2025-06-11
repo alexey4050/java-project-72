@@ -22,7 +22,7 @@ jobs:
         run: chmod +x app/gradlew
 
       - name: Build and test
-        run: ./gradlew clean test jacocoTestReport
+        run: app/./gradlew clean test jacocoTestReport
 
       - name: Verify JaCoCo report
         run: |
