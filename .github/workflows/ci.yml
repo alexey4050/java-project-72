@@ -6,53 +6,41 @@ on:
   pull_request:
     branches:
       - main
-
 jobs:
   build:
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v2
 
       - name: Set up JDK 21
         uses: actions/setup-java@v3
         with:
           java-version: '21'
           distribution: 'temurin'
-          cache: 'gradle'
 
-      - name: Grant execute permission for gradlew
-        run: chmod +x gradlew
-
-      - name: Build with Gradle
-        run: ./gradlew build
-
-      - name: Run tests with coverage
-        run: ./gradlew jacocoTestReport
-
-      - name: SonarQube Scan
-        uses: sonarsource/sonarcloud-github-action@master
-        env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+      - uses: gradle/gradle-build-action@v2
         with:
-          args: >
-            -Dsonar.projectKey=alexey4050_java-project-72
-            -Dsonar.organization=alexey4050
-            -Dsonar.java.binaries=build/classes
-            -Dsonar.coverage.jacoco.xmlReportPaths=build/reports/jacoco/test/jacocoTestReport.xml
-            -Dsonar.junit.reportPaths=build/test-results/test
+          arguments: build
+          build-root-directory: app
 
-      - name: Prepare coverage reports
+      - name: Prepare coverage report for Qlty.sh
         run: |
           mkdir -p reports
-          cp app/build/reports/jacoco/test/jacocoTestReport.xml reports/
+          cp app/build/reports/jacoco/test/jacocoTestReport.xml reports/coverage.xml
 
-      - name: Upload to Code Climate
-        uses: paambaati/ccodeclimate-action@v3.0.0
-        env:
-          CC_TEST_REPORTER_ID: ${{ secrets.CC_TEST_REPORTER_ID }}
+      - name: Upload coverage to Qlty.sh
+        uses: qltysh/qlty-action/coverage@v1
         with:
-          coverageCommand: ./gradlew jacocoTestReport
-          coverageLocations: |
-            ${{ github.workspace }}app/build/reports/jacoco/test/jacocoTestReport.xml:jacoco
+          token: ${{ secrets.QLTY_COVERAGE_TOKEN }}
+          files: target/lcov.info
+
+      - name: Publish code coverage
+        uses: paambaati/codeclimate-action@v5.0.0
+        env:
+          CC_TEST_REPORTER_ID: ${{secrets.CC_TEST_REPORTER_ID}}
+          JACOCO_SOURCE_PATH: app/src/main/java
+        with:
+          coverageCommand: make report
+          coverageLocations: ${{github.workspace}}/app/build/reports/jacoco/test/jacocoTestReport.xml:jacoco
