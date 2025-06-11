@@ -22,17 +22,17 @@ jobs:
           distribution: 'temurin'
 
       - name: Grant gradlew permissions
-        run: chmod +x gradlew
+        run: chmod +x app/gradlew
 
       - name: Build with Gradle
-        run: ./gradlew build
+        run: app/./gradlew build
 
       - name: SonarCloud Scan
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Необходимо для PR-анализ
         run: |
-          ./gradlew sonar \
+          app/./gradlew sonar \
             -Dsonar.projectKey=your-project-key \
             -Dsonar.organization=your-org \
             -Dsonar.host.url=https://sonarcloud.io \

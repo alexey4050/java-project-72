@@ -9,6 +9,7 @@ plugins {
 
 application {
     mainClass = "hexlet.code.App"
+    applicationName = "app"
 }
 
 group = "hexlet.code"
@@ -48,14 +49,15 @@ dependencies {
 
 sonar {
     properties {
+        property("sonar.projectName", "app")
         property("sonar.projectKey", "alexey4050_java-project-72")
         property("sonar.organization", "alexey4050")
         property("sonar.host.url", "https://sonarcloud.io")
         property("sonar.login", System.getenv("SONAR_TOKEN") ?: "")
         property("sonar.java.binaries", "build/classes")
         property("sonar.java.coverage.jacoco.xmlReportPaths",
-            "app/build/reports/jacoco/test/jacocoTestReport.xml")
-        property("sonar.junit.reportPaths", "app/build/test-results/test")
+            "build/reports/jacoco/test/jacocoTestReport.xml")
+        property("sonar.junit.reportPaths", "build/test-results/test")
         property("sonar.sourceEncoding", "UTF-8")
         property("sonar.verbose", "true")
     }
@@ -63,23 +65,18 @@ sonar {
 
 tasks.test {
     useJUnitPlatform()
-    finalizedBy(tasks.jacocoTestReport)
-    outputs.dir(layout.buildDirectory.dir("test-results"))
 }
 
 jacoco {
     toolVersion = "0.8.12"
-    reportsDirectory.set(layout.buildDirectory.dir("reports/jacoco"))
 }
 
 tasks.jacocoTestReport {
     dependsOn(tasks.test)
     reports {
         xml.required.set(true)
-        xml.outputLocation.set(layout.buildDirectory.file("reports/jacoco/test/jacocoTestReport.xml"))
         csv.required.set(false)
-        html.required.set(true)
-        html.outputLocation.set(layout.buildDirectory.dir("reports/jacoco/html"))
+        html.outputLocation = layout.buildDirectory.dir("jacocoHtml")
     }
 }
 
