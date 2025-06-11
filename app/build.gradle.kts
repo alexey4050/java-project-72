@@ -54,30 +54,35 @@ sonar {
         property("sonar.login", System.getenv("SONAR_TOKEN") ?: "")
         property("sonar.java.binaries", "build/classes")
         property("sonar.java.coverage.jacoco.xmlReportPaths",
-            "build/reports/jacoco/test/jacocoTestReport.xml")
-        property("sonar.junit.reportPaths", "build/test-results/test")
+            "app/build/reports/jacoco/test/jacocoTestReport.xml")
+        property("sonar.junit.reportPaths", "app/build/test-results/test")
         property("sonar.sourceEncoding", "UTF-8")
         property("sonar.verbose", "true")
     }
 }
 
-
 tasks.test {
     useJUnitPlatform()
+    finalizedBy(tasks.jacocoTestReport)
+    outputs.dir(layout.buildDirectory.dir("test-results"))
 }
 
 jacoco {
     toolVersion = "0.8.12"
+    reportsDirectory.set(layout.buildDirectory.dir("reports/jacoco"))
 }
 
 tasks.jacocoTestReport {
     dependsOn(tasks.test)
     reports {
         xml.required.set(true)
+        xml.outputLocation.set(layout.buildDirectory.file("reports/jacoco/test/jacocoTestReport.xml"))
         csv.required.set(false)
-        html.outputLocation = layout.buildDirectory.dir("jacocoHtml")
+        html.required.set(true)
+        html.outputLocation.set(layout.buildDirectory.dir("reports/jacoco/html"))
     }
 }
+
 tasks.check {
     dependsOn(tasks.jacocoTestCoverageVerification)
 }

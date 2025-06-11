@@ -8,6 +8,7 @@ app/.gradle
 app/.idea
 MY_SSH_KEY
 MY_SSH_KEY.pub
+gradle.
 
 ### IntelliJ IDEA ###
 .idea/modules.xml
