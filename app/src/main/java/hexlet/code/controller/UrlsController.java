@@ -68,7 +68,7 @@ public final class UrlsController {
         }
     }
 
-    public static void index(Context ctx) throws SQLException {
+    public static void index(Context ctx) {
         LOGGER.info("Loading URLs index page");
         try {
             var urls = UrlRepository.getEntities();
@@ -97,7 +97,7 @@ public final class UrlsController {
         }
     }
 
-    public static void show(Context ctx) throws SQLException {
+    public static void show(Context ctx) {
         try {
             long id = ctx.pathParamAsClass("id", Long.class).get();
             var urlOptional = UrlRepository.findById(id);

@@ -39,10 +39,10 @@ dependencies {
 
     implementation("gg.jte:jte:3.2.1")
 
-    implementation("com.konghq:unirest-java:3.14.1")
+    implementation("com.konghq:unirest-java:3.14.5")
     implementation("org.apache.httpcomponents:httpclient:4.5.13")
 
-    implementation("org.jsoup:jsoup:1.17.2")
+    implementation("org.jsoup:jsoup:1.20.1")
 
 }
 
@@ -51,8 +51,16 @@ sonar {
         property("sonar.projectKey", "alexey4050_java-project-72")
         property("sonar.organization", "alexey4050")
         property("sonar.host.url", "https://sonarcloud.io")
+        property("sonar.login", System.getenv("SONAR_TOKEN") ?: "")
+        property("sonar.java.binaries", "build/classes")
+        property("sonar.java.coverage.jacoco.xmlReportPaths",
+            "build/reports/jacoco/test/jacocoTestReport.xml")
+        property("sonar.junit.reportPaths", "build/test-results/test")
+        property("sonar.sourceEncoding", "UTF-8")
+        property("sonar.verbose", "true")
     }
 }
+
 
 tasks.test {
     useJUnitPlatform()
@@ -69,4 +77,7 @@ tasks.jacocoTestReport {
         csv.required.set(false)
         html.outputLocation = layout.buildDirectory.dir("jacocoHtml")
     }
+}
+tasks.check {
+    dependsOn(tasks.jacocoTestCoverageVerification)
 }

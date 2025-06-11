@@ -1,13 +1,16 @@
 name: CI
 on:
   push:
-    branches: [main]
+    branches:
+      - main
   pull_request:
-    branches: [main]
+    branches:
+      - main
 
 jobs:
   build:
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -19,44 +22,37 @@ jobs:
           distribution: 'temurin'
           cache: 'gradle'
 
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+
       - name: Build with Gradle
-        uses: gradle/gradle-build-action@v2
+        run: ./gradlew build
+
+      - name: Run tests with coverage
+        run: ./gradlew jacocoTestReport
+
+      - name: SonarQube Scan
+        uses: sonarsource/sonarcloud-github-action@master
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         with:
-          arguments: build test jacocoTestReport
-          build-root-directory: app
+          args: >
+            -Dsonar.projectKey=alexey4050_java-project-72
+            -Dsonar.organization=alexey4050
+            -Dsonar.java.binaries=build/classes
+            -Dsonar.coverage.jacoco.xmlReportPaths=build/reports/jacoco/test/jacocoTestReport.xml
+            -Dsonar.junit.reportPaths=build/test-results/test
 
-      - name: Verify and prepare reports
-        id: prepare-reports
-        run: |
-          # Проверяем существование файла через shell
-          if [ -f "app/build/reports/jacoco/test/jacocoTestReport.xml" ]; then
-            echo "JaCoCo report found"
-            mkdir -p reports
-            cp app/build/reports/jacoco/test/jacocoTestReport.xml reports/coverage.xml
-            echo "report_prepared=true" >> $GITHUB_OUTPUT
-          else
-            echo "JaCoCo report not found!"
-            echo "report_prepared=false" >> $GITHUB_OUTPUT
-          fi
-
-      - name: Prepare reports for Qlty.sh
-        if: success() && fileExists('app/build/reports/jacoco/test/jacocoTestReport.xml')
+      - name: Prepare coverage reports
         run: |
           mkdir -p reports
-          cp app/build/reports/jacoco/test/jacocoTestReport.xml reports/coverage.xml
+          cp app/build/reports/jacoco/test/jacocoTestReport.xml reports/
 
-      - name: Upload to Qlty.sh
-        if: success() && fileExists('reports/coverage.xml')
-        uses: qltysh/qlty-action/coverage@v1
-        with:
-          token: ${{ secrets.QLTY_COVERAGE_TOKEN }}
-          files: reports/coverage.xml
-
-      - name: Upload to CodeClimate
-        if: success() && fileExists('app/build/reports/jacoco/test/jacocoTestReport.xml')
-        uses: paambaati/codeclimate-action@v5.0.0
+      - name: Upload to Code Climate
+        uses: paambaati/ccodeclimate-action@v3.0.0
         env:
           CC_TEST_REPORTER_ID: ${{ secrets.CC_TEST_REPORTER_ID }}
         with:
-          coverageCommand: ./gradlew -p app jacocoTestReport
-          coverageLocations: ${{ github.workspace }}/app/build/reports/jacoco/test/jacocoTestReport.xml:jacoco
+          coverageCommand: ./gradlew jacocoTestReport
+          coverageLocations: |
+            ${{ github.workspace }}app/build/reports/jacoco/test/jacocoTestReport.xml:jacoco
