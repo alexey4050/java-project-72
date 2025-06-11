@@ -36,6 +36,7 @@ public class AppTest {
 
     @BeforeAll
     static void setupAll() throws IOException, SQLException {
+        System.setProperty("JDBC_DATABASE_URL", "jdbc:h2:mem:project;DB_CLOSE_DELAY=-1;");
         var dataSource = DataBase.getDataSource();
         BaseRepository.setDataSource((HikariDataSource) dataSource);
         DataBase.runMigrations(dataSource);

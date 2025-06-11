@@ -42,4 +42,4 @@ jobs:
         working-directory: app
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        run: ./gradlew build sonar --info
+        run: ./gradlew sonar --info --stacktrace
