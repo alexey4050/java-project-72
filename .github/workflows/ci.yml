@@ -23,11 +23,12 @@ jobs:
           arguments: build
           build-root-directory: app
 
+      - name: Generate coverage report
+        run: make report
+
       - name: Upload to Qlty.sh
         uses: qltysh/qlty-action/coverage@v1
-        env:
-          token: ${{ secrets.QLTY_COVERAGE_TOKEN }}
-          JACOCO_SOURCE_PATH: app/src/main/java
         with:
-          coverageCommand: make report
-          coverageLocations: ${{github.workspace}}/app/build/reports/jacoco/test/jacocoTestReport.xml:jacoco
+          files: /home/runner/work/java-project-72/java-project-72/app/build/reports/jacoco/test/jacocoTestReport.xml
+          token: ${{ secrets.QLTY_COVERAGE_TOKEN }}
+
