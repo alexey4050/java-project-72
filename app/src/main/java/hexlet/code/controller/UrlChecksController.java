@@ -57,6 +57,7 @@ public final class UrlChecksController {
             );
 
             UrlCheckRepository.save(urlCheck);
+            ctx.status(200);
 
             ctx.sessionAttribute(FLASH_TYPE, SUCCESS_TYPE);
             ctx.sessionAttribute(FLASH_MESSAGE, "Страница успешно проверена");
@@ -64,6 +65,7 @@ public final class UrlChecksController {
             LOGGER.error("Check failed for URL ID: " + urlId, e);
             ctx.sessionAttribute(FLASH_TYPE, DANGER_TYPE);
             ctx.sessionAttribute(FLASH_MESSAGE, "Ошибка при проверке: " + e.getMessage());
+            ctx.status(500).result("Check failed: " + e.getMessage());
         }
         ctx.redirect(NamedRoutes.urlPath(urlId));
     }
