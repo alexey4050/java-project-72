@@ -60,15 +60,17 @@ public final class UrlsController {
 
             ctx.sessionAttribute(FLASH_TYPE, SUCCESS_TYPE);
             ctx.sessionAttribute(FLASH_MESSAGE, "Сайт успешно добавлен!");
+            ctx.status(200);
             ctx.redirect(NamedRoutes.urlsPath());
         } catch (MalformedURLException | URISyntaxException e) {
             ctx.sessionAttribute(FLASH_TYPE, DANGER_TYPE);
             ctx.sessionAttribute(FLASH_MESSAGE, "Некорректный URL: " + urlString);
+            ctx.status(400);
             ctx.redirect(NamedRoutes.rootPath());
         } catch (Exception e) {
             ctx.sessionAttribute(FLASH_TYPE, DANGER_TYPE);
             ctx.sessionAttribute(FLASH_MESSAGE, "Произошла непредвиденная ошибка: " + e.getMessage());
-            ctx.status(400);
+            ctx.status(500);
             ctx.result("Ошибка" + e.getMessage());
             ctx.redirect(NamedRoutes.rootPath());
         }
