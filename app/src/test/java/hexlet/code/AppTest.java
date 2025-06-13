@@ -6,6 +6,7 @@ import hexlet.code.repository.BaseRepository;
 import hexlet.code.repository.UrlCheckRepository;
 import hexlet.code.repository.UrlRepository;
 import hexlet.code.util.DataBase;
+import hexlet.code.util.UrlUtil;
 import io.javalin.Javalin;
 import kong.unirest.Unirest;
 import okhttp3.mockwebserver.MockResponse;
@@ -40,7 +41,6 @@ public class AppTest {
         var dataSource = DataBase.getDataSource();
         BaseRepository.setDataSource((HikariDataSource) dataSource);
         DataBase.runMigrations(dataSource);
-
         mockWebServer = new MockWebServer();
         mockWebServer.start();
         mockUrl = mockWebServer.url("/").toString();
@@ -59,7 +59,7 @@ public class AppTest {
     }
 
     @BeforeEach
-    void setupEach() throws SQLException {
+    void setupEach() throws SQLException, IOException {
         DataBase.cleanBase();
         app = App.getApp();
         app.start(0);
@@ -68,6 +68,26 @@ public class AppTest {
     @AfterEach
     void tearDownEach() {
         app.stop();
+    }
+    @Test
+    public void testCreateUrl() throws Exception {
+        var client = HttpClient.newHttpClient();
+        var formData = "url=" + mockUrl;
+        var request = HttpRequest.newBuilder()
+                .uri(URI.create("http://localhost:" + app.port() + "/urls"))
+                .header("Content-Type", "application/x-www-form-urlencoded")
+                .POST(HttpRequest.BodyPublishers.ofString(formData))
+                .build();
+
+        var response = client.send(request, HttpResponse.BodyHandlers.ofString());
+        assertEquals(302, response.statusCode(), "Должен быть редирект после создания URL");
+
+        var urls = UrlRepository.getEntities();
+        assertFalse(urls.isEmpty(), "URL должен быть сохранен в базе");
+
+        String normalizedMockUrl = UrlUtil.normalizeUrl(mockUrl);
+        String savedUrl = UrlUtil.normalizeUrl(urls.get(0).getName());
+        assertEquals(normalizedMockUrl, savedUrl, "Сохраненный URL должен соответствовать введенному");
     }
 
     @Test
@@ -166,4 +186,5 @@ public class AppTest {
         assertEquals(302, response.statusCode());
         assertFalse(response.body().contains("Некорректный URL"));
     }
+
 }

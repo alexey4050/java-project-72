@@ -47,40 +47,34 @@ public class App {
             System.exit(1);
         }
     }
-    public static Javalin getApp() {
+    public static Javalin getApp() throws SQLException, IOException {
         LOGGER.info("Starting application configuration...");
 
-        DataSource dataSource;
         try {
-            dataSource = DataBase.getDataSource();
+            DataSource dataSource = DataBase.getDataSource();
             DataBase.runMigrations(dataSource);
 
-            if (!(dataSource instanceof HikariDataSource)) {
-                throw new IllegalStateException("Expected HikariDataSource but got " + dataSource.getClass());
-            }
-            BaseRepository.setDataSource((HikariDataSource) dataSource);
-        } catch (SQLException | IOException e) {
-            LOGGER.error("Ошибка при инициализации базы данных: {}", e.getMessage(), e);
-            System.exit(1);
+
+            var app = Javalin.create(config -> {
+                config.bundledPlugins.enableDevLogging();
+                config.fileRenderer(new JavalinJte(createTemplateEngine()));
+            });
+
+            app.before(ctx -> {
+                ctx.attribute(FLASH_MESSAGE, ctx.sessionAttribute(FLASH_MESSAGE));
+                ctx.attribute(FLASH_TYPE, ctx.sessionAttribute(FLASH_TYPE));
+            });
+
+            app.get(NamedRoutes.rootPath(), RootController::index);
+            app.get(NamedRoutes.urlsPath(), UrlsController::index);
+            app.post(NamedRoutes.urlsPath(), UrlsController::create);
+            app.get(NamedRoutes.urlPath("{id}"), UrlsController::show);
+            app.post(NamedRoutes.urlChecksPath("{id}"), UrlChecksController::create);
+
+            return app;
+
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to initialize application", e);
         }
-
-
-        var app = Javalin.create(config -> {
-            config.bundledPlugins.enableDevLogging();
-            config.fileRenderer(new JavalinJte(createTemplateEngine()));
-        });
-
-        app.before(ctx -> {
-            ctx.attribute(FLASH_MESSAGE, ctx.sessionAttribute(FLASH_MESSAGE));
-            ctx.attribute(FLASH_TYPE, ctx.sessionAttribute(FLASH_TYPE));
-        });
-
-        app.get(NamedRoutes.rootPath(), RootController::index);
-        app.get(NamedRoutes.urlsPath(), UrlsController::index);
-        app.post(NamedRoutes.urlsPath(), UrlsController::create);
-        app.get(NamedRoutes.urlPath("{id}"), UrlsController::show);
-        app.post(NamedRoutes.urlChecksPath("{id}"), UrlChecksController::create);
-
-        return app;
     }
 }
