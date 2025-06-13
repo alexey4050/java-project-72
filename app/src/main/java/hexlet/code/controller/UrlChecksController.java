@@ -35,6 +35,8 @@ public final class UrlChecksController {
             ctx.sessionAttribute(FLASH_TYPE, DANGER_TYPE);
             ctx.sessionAttribute(FLASH_MESSAGE, NOT_FOUND_MESSAGE);
             ctx.redirect(NamedRoutes.urlsPath());
+            ctx.status(404);
+            ctx.result("URL не найден");
             return;
         }
 

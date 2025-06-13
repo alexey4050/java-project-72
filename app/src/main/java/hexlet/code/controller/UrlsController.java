@@ -54,6 +54,9 @@ public final class UrlsController {
             Url url = new Url(normalizedUrl);
             UrlRepository.save(url);
 
+            ctx.status(200);
+            ctx.result("URl успешно добавлен");
+
             ctx.sessionAttribute(FLASH_TYPE, SUCCESS_TYPE);
             ctx.sessionAttribute(FLASH_MESSAGE, "Сайт успешно добавлен!");
             ctx.redirect(NamedRoutes.urlsPath());
@@ -64,6 +67,8 @@ public final class UrlsController {
         } catch (Exception e) {
             ctx.sessionAttribute(FLASH_TYPE, DANGER_TYPE);
             ctx.sessionAttribute(FLASH_MESSAGE, "Произошла непредвиденная ошибка: " + e.getMessage());
+            ctx.status(400);
+            ctx.result("Ошибка" + e.getMessage());
             ctx.redirect(NamedRoutes.rootPath());
         }
     }
