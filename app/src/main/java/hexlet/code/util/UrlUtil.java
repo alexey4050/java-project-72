@@ -22,6 +22,6 @@ public final class UrlUtil {
         if (port != -1) {
             sb.append(":").append(port);
         }
-        return sb.toString();
+        return sb.toString().replaceAll("/+$", "");
     }
 }
