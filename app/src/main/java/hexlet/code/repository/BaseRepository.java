@@ -11,7 +11,7 @@ public class BaseRepository {
         BaseRepository.dataSource = dataSource;
     }
 
-    protected static HikariDataSource getDataSource() throws SQLException {
+    public static HikariDataSource getDataSource() throws SQLException {
         if (dataSource == null) {
             throw new SQLException("DataSource is not initialized");
         }

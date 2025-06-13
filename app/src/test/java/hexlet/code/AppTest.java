@@ -27,8 +27,10 @@ import java.nio.file.Paths;
 import java.sql.SQLException;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+
 
 public class AppTest {
     private Javalin app;
@@ -71,23 +73,39 @@ public class AppTest {
     }
     @Test
     public void testCreateUrl() throws Exception {
+        String html = Files.readString(Paths.get("src/test/resources/mock_response.html"));
+        mockWebServer.enqueue(new MockResponse()
+                .setResponseCode(200)
+                .setBody(html)
+                .addHeader("Content-Type", "text/html")
+        );
+
+        String normalizedUrl = UrlUtil.normalizeUrl(mockUrl);
+        var url = new Url(normalizedUrl);
+        UrlRepository.save(url);
+
+        var savedUrl = UrlRepository.findById(url.getId()).orElse(null);
+        assertNotNull(savedUrl, "URL должен быть сохранен перед проверкой");
+
         var client = HttpClient.newHttpClient();
-        var formData = "url=" + mockUrl;
         var request = HttpRequest.newBuilder()
-                .uri(URI.create("http://localhost:" + app.port() + "/urls"))
-                .header("Content-Type", "application/x-www-form-urlencoded")
-                .POST(HttpRequest.BodyPublishers.ofString(formData))
+                .uri(URI.create("http://localhost:" + app.port() + "/urls/" + url.getId() + "/checks"))
+                .POST(HttpRequest.BodyPublishers.noBody())
                 .build();
 
         var response = client.send(request, HttpResponse.BodyHandlers.ofString());
-        assertEquals(302, response.statusCode(), "Должен быть редирект после создания URL");
 
-        var urls = UrlRepository.getEntities();
-        assertFalse(urls.isEmpty(), "URL должен быть сохранен в базе");
+        assertEquals(302, response.statusCode());
+        assertTrue(response.headers().firstValue("Location").isPresent());
 
-        String normalizedMockUrl = UrlUtil.normalizeUrl(mockUrl);
-        String savedUrl = UrlUtil.normalizeUrl(urls.get(0).getName());
-        assertEquals(normalizedMockUrl, savedUrl, "Сохраненный URL должен соответствовать введенному");
+        var checks = UrlCheckRepository.getChecksByUrlId(url.getId());
+        assertFalse(checks.isEmpty(), "Проверка должна быть создана");
+
+        var check = checks.get(0);
+        assertEquals(200, check.getStatusCode());
+        assertEquals("Test Page Title", check.getTitle());
+        assertEquals("Test H1 Header", check.getH1());
+        assertEquals("Test Description", check.getDescription());
     }
 
     @Test
@@ -100,8 +118,12 @@ public class AppTest {
                 .addHeader("Content-Type", "text/html")
         );
 
-        var url = new Url(mockUrl);
+        String normalizedUrl = UrlUtil.normalizeUrl(mockUrl);
+        var url = new Url(normalizedUrl);
         UrlRepository.save(url);
+
+        var savedUrl = UrlRepository.findById(url.getId()).orElse(null);
+        assertNotNull(savedUrl, "URL должен быть сохранен перед проверкой");
 
         var client = HttpClient.newHttpClient();
         var request = HttpRequest.newBuilder()
@@ -138,7 +160,8 @@ public class AppTest {
         var response = client.send(request, HttpResponse.BodyHandlers.ofString());
 
         assertEquals(200, response.statusCode());
-        assertTrue(response.body().contains("Анализатор страниц"));
+        assertTrue(response.body().contains("Анализатор страниц"),
+                "Главная страница должна содержать заголовок");
     }
 
     @Test
