@@ -1,5 +1,6 @@
 package hexlet.code;
 
+import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import hexlet.code.model.Url;
 import hexlet.code.repository.BaseRepository;
@@ -39,10 +40,10 @@ public class AppTest {
 
     @BeforeAll
     static void setupAll() throws IOException, SQLException {
-        System.setProperty("JDBC_DATABASE_URL", "jdbc:h2:mem:project;DB_CLOSE_DELAY=-1");
-        var dataSource = DataBase.getDataSource();
-        BaseRepository.setDataSource((HikariDataSource) dataSource);
-        DataBase.runMigrations(dataSource);
+        var config = new HikariConfig();
+        config.setJdbcUrl("jdbc:h2:mem:test;DB_CLOSE_DELAY=-1;");
+        BaseRepository.dataSource = new HikariDataSource(config);
+        DataBase.runMigrations();
         mockWebServer = new MockWebServer();
         mockWebServer.start();
         mockUrl = mockWebServer.url("/").toString();
@@ -56,7 +57,9 @@ public class AppTest {
     @AfterAll
     static void tearDown() throws IOException {
         mockWebServer.shutdown();
-        DataBase.closeDataSource();
+        if (BaseRepository.dataSource != null) {
+            BaseRepository.dataSource.close();
+        }
         Unirest.shutDown();
     }
 

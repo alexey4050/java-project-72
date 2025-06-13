@@ -1,11 +1,14 @@
 package hexlet.code;
 
+import com.zaxxer.hikari.HikariConfig;
+import com.zaxxer.hikari.HikariDataSource;
 import gg.jte.ContentType;
 import gg.jte.TemplateEngine;
 import gg.jte.resolve.ResourceCodeResolver;
 import hexlet.code.controller.RootController;
 import hexlet.code.controller.UrlChecksController;
 import hexlet.code.controller.UrlsController;
+import hexlet.code.repository.BaseRepository;
 import hexlet.code.util.DataBase;
 import hexlet.code.util.NamedRoutes;
 import io.javalin.Javalin;
@@ -14,7 +17,6 @@ import org.slf4j.LoggerFactory;
 
 import org.slf4j.Logger;
 
-import javax.sql.DataSource;
 import java.io.IOException;
 import java.sql.SQLException;
 
@@ -45,34 +47,35 @@ public class App {
             System.exit(1);
         }
     }
+
     public static Javalin getApp() throws SQLException, IOException {
         LOGGER.info("Starting application configuration...");
 
-        try {
-            DataSource dataSource = DataBase.getDataSource();
-            DataBase.runMigrations(dataSource);
+        var config = new HikariConfig();
+        config.setJdbcUrl(System.getProperty("JDBC_DATABASE_URL", "jdbc:h2:mem:project;DB_CLOSE_DELAY=-1"));
+        config.setMaximumPoolSize(10);
+        BaseRepository.dataSource = new HikariDataSource(config);
+
+        DataBase.runMigrations();
 
 
-            var app = Javalin.create(config -> {
-                config.bundledPlugins.enableDevLogging();
-                config.fileRenderer(new JavalinJte(createTemplateEngine()));
-            });
+        var app = Javalin.create(conf -> {
+            conf.bundledPlugins.enableDevLogging();
+            conf.fileRenderer(new JavalinJte(createTemplateEngine()));
+        });
 
-            app.before(ctx -> {
-                ctx.attribute(FLASH_MESSAGE, ctx.sessionAttribute(FLASH_MESSAGE));
-                ctx.attribute(FLASH_TYPE, ctx.sessionAttribute(FLASH_TYPE));
-            });
+        app.before(ctx -> {
+            ctx.attribute(FLASH_MESSAGE, ctx.sessionAttribute(FLASH_MESSAGE));
+            ctx.attribute(FLASH_TYPE, ctx.sessionAttribute(FLASH_TYPE));
+        });
 
-            app.get(NamedRoutes.rootPath(), RootController::index);
-            app.get(NamedRoutes.urlsPath(), UrlsController::index);
-            app.post(NamedRoutes.urlsPath(), UrlsController::create);
-            app.get(NamedRoutes.urlPath("{id}"), UrlsController::show);
-            app.post(NamedRoutes.urlChecksPath("{id}"), UrlChecksController::create);
+        app.get(NamedRoutes.rootPath(), RootController::index);
+        app.get(NamedRoutes.urlsPath(), UrlsController::index);
+        app.post(NamedRoutes.urlsPath(), UrlsController::create);
+        app.get(NamedRoutes.urlPath("{id}"), UrlsController::show);
+        app.post(NamedRoutes.urlChecksPath("{id}"), UrlChecksController::create);
 
-            return app;
+        return app;
 
-        } catch (Exception e) {
-            throw new RuntimeException("Failed to initialize application", e);
-        }
     }
 }
