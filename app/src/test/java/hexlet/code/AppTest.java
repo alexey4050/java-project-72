@@ -36,10 +36,11 @@ public class AppTest {
 
     @BeforeAll
     static void setupAll() throws IOException, SQLException {
-        System.setProperty("JDBC_DATABASE_URL", "jdbc:h2:mem:project;DB_CLOSE_DELAY=-1;");
+        System.setProperty("JDBC_DATABASE_URL", "jdbc:h2:mem:project;DB_CLOSE_DELAY=-1");
         var dataSource = DataBase.getDataSource();
         BaseRepository.setDataSource((HikariDataSource) dataSource);
         DataBase.runMigrations(dataSource);
+
         mockWebServer = new MockWebServer();
         mockWebServer.start();
         mockUrl = mockWebServer.url("/").toString();
@@ -47,7 +48,7 @@ public class AppTest {
         Unirest.config()
                 .socketTimeout(500)
                 .connectTimeout(500)
-                .defaultBaseUrl(mockWebServer.url("/").toString());
+                .defaultBaseUrl(mockUrl);
     }
 
     @AfterAll
@@ -58,7 +59,7 @@ public class AppTest {
     }
 
     @BeforeEach
-    void setupEach() throws SQLException, IOException {
+    void setupEach() throws SQLException {
         DataBase.cleanBase();
         app = App.getApp();
         app.start(0);

@@ -23,15 +23,10 @@ public final class DataBase {
         throw new UnsupportedOperationException("This is a utility class and cannot be instantiated");
     }
 
-    private static String getDatabaseUrl() {
-        return System.getenv().getOrDefault("JDBC_DATABASE_URL",
-                "jdbc:h2:mem:project;DB_CLOSE_DELAY=-1;");
-    }
-
     public static DataSource getDataSource() {
         if (dataSource == null) {
             HikariConfig config = new HikariConfig();
-            String jdbcUrl = System.getenv().getOrDefault("JDBC_DATABASE_URL", DEFAULT_JDBC_URL);
+            String jdbcUrl = System.getProperty("JDBC_DATABASE_URL", DEFAULT_JDBC_URL);
             config.setJdbcUrl(jdbcUrl);
             config.setMaximumPoolSize(10);
             config.setConnectionTimeout(30000);
