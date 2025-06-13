@@ -38,6 +38,7 @@ public final class UrlsController {
             if (urlString == null || urlString.isBlank()) {
                 ctx.sessionAttribute(FLASH_TYPE, DANGER_TYPE);
                 ctx.sessionAttribute(FLASH_MESSAGE, "URL не может быть пустым");
+                ctx.status(400).result("URL cannot be empty");
                 ctx.redirect(NamedRoutes.rootPath());
                 return;
             }
