@@ -6,7 +6,6 @@ import gg.jte.resolve.ResourceCodeResolver;
 import hexlet.code.controller.RootController;
 import hexlet.code.controller.UrlChecksController;
 import hexlet.code.controller.UrlsController;
-import hexlet.code.repository.BaseRepository;
 import hexlet.code.util.DataBase;
 import hexlet.code.util.NamedRoutes;
 import io.javalin.Javalin;
@@ -50,9 +49,7 @@ public class App {
         LOGGER.info("Starting application configuration...");
 
         try {
-            DataSource dataSource = BaseRepository.getDataSource() != null
-                    ? BaseRepository.getDataSource()
-                    : DataBase.getDataSource();
+            DataSource dataSource = DataBase.getDataSource();
             DataBase.runMigrations(dataSource);
 
 
