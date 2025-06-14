@@ -42,7 +42,7 @@ public class AppTest {
     @BeforeAll
     static void setupAll() throws IOException, SQLException {
         var config = new HikariConfig();
-        config.setJdbcUrl(System.getenv().getOrDefault("JDBC_DATABASE_URL", "jdbc:h2:mem:project;DB_CLOSE_DELAY=-1"));
+        config.setJdbcUrl("jdbc:h2:mem:test;DB_CLOSE_DELAY=-1");
         BaseRepository.dataSource = new HikariDataSource(config);
         DataBase.runMigrations();
         mockWebServer = new MockWebServer();
