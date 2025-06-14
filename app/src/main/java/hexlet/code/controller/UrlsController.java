@@ -59,8 +59,8 @@ public final class UrlsController {
             LOGGER.error("Invalid URL: {}", urlString, e);
             ctx.sessionAttribute(FLASH_TYPE, DANGER_TYPE);
             ctx.sessionAttribute(FLASH_MESSAGE, "Некорректный URL: " + urlString);
-            ctx.status(400);
             ctx.redirect(NamedRoutes.rootPath());
+            ctx.status(422);
         } catch (SQLException e) {
             LOGGER.error("Database error", e);
             ctx.sessionAttribute(FLASH_TYPE, DANGER_TYPE);
@@ -70,7 +70,6 @@ public final class UrlsController {
             LOGGER.error("Unexpected error", e);
             ctx.sessionAttribute(FLASH_TYPE, DANGER_TYPE);
             ctx.sessionAttribute(FLASH_MESSAGE, "Произошла непредвиденная ошибка: " + e.getMessage());
-            ctx.status(500);
             ctx.result("Ошибка" + e.getMessage());
             ctx.redirect(NamedRoutes.rootPath());
         }
@@ -109,12 +108,6 @@ public final class UrlsController {
         try {
             long id = ctx.pathParamAsClass("id", Long.class).get();
             var urlOptional = UrlRepository.findById(id);
-
-            if (urlOptional.isEmpty()) {
-                ctx.status(404);
-                ctx.render("errors/404.jte");
-                return;
-            }
 
             var checks = UrlCheckRepository.getChecksByUrlId(id);
             var page = new UrlPage(urlOptional.get(), checks);

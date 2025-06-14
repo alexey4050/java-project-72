@@ -9,7 +9,12 @@ public final class UrlUtil {
     private UrlUtil() {
         throw new UnsupportedOperationException("Это служебный класс, создание экземпляров запрещено");
     }
+
     public static String normalizeUrl(String urlString) throws URISyntaxException, MalformedURLException {
+        if (!urlString.startsWith("http://") && !urlString.startsWith("https://")) {
+            urlString = "http://" + urlString;
+        }
+
         URI uri = new URI(urlString);
         URL url = uri.toURL();
 

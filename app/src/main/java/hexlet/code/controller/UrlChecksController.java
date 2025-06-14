@@ -1,18 +1,16 @@
 package hexlet.code.controller;
 
+import hexlet.code.model.Url;
 import hexlet.code.model.UrlCheck;
 import hexlet.code.repository.UrlCheckRepository;
 import hexlet.code.repository.UrlRepository;
 import hexlet.code.util.NamedRoutes;
 import io.javalin.http.Context;
-import io.javalin.http.NotFoundResponse;
-import kong.unirest.HttpResponse;
-import kong.unirest.Unirest;
 import org.jsoup.Jsoup;
-import org.jsoup.nodes.Element;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.sql.SQLException;
 import java.util.Optional;
 
@@ -27,38 +25,31 @@ public final class UrlChecksController {
         throw new UnsupportedOperationException("Utility class");
     }
 
-    public static void create(Context ctx) throws SQLException {
-        Long urlId = ctx.pathParamAsClass("id", Long.class).get();
+    public static void create(Context ctx) {
         try {
-            var url = UrlRepository.findById(urlId)
-                    .orElseThrow(() -> {
-                        ctx.sessionAttribute("flashType", "danger");
-                        ctx.sessionAttribute("flashMessage", "Страница не найдена");
-                        ctx.status(404);
-                        return new NotFoundResponse("URL не найден");
-                    });
+            Long urlId = ctx.pathParamAsClass("id", Long.class).get();
+            Optional<Url> urlOptional = UrlRepository.findById(urlId);
 
-            HttpResponse<String> response = Unirest.get(url.getName())
-                    .connectTimeout(5000)
-                    .socketTimeout(10000)
-                    .asString();
-
-            if (response.getStatus() != 200) {
-                throw new RuntimeException("Сервер вернул статус: " + response.getStatus());
+            if (urlOptional.isEmpty()) {
+                ctx.sessionAttribute(FLASH_TYPE, DANGER_TYPE);
+                ctx.sessionAttribute(FLASH_MESSAGE, "Страница не найдена");
+                ctx.redirect(NamedRoutes.urlsPath());
+                return;
             }
+            Url url = urlOptional.get();
+            String normalizedUrl = url.getName();
 
-            var doc = Jsoup.parse(response.getBody());
-            String title = doc.title() != null ? doc.title() : "";
-            String h1 = Optional.ofNullable(doc.selectFirst("h1"))
-                    .map(Element::text)
-                    .orElse("");
+            var doc = Jsoup.connect(normalizedUrl).get();
 
-            String description = Optional.ofNullable(doc.selectFirst("meta[name=description]"))
-                    .map(el -> el.attr("content"))
-                    .orElse("");
+            int statusCode = 200;
+            String title = doc.title();
+            String h1 = doc.selectFirst("h1") != null ? doc.selectFirst("h1").text() : "";
+            String description = doc.selectFirst("meta[name=description]") != null
+                    ? doc.selectFirst("meta[name=description]").attr("content")
+                    : "";
 
-            var urlCheck = new UrlCheck(
-                    response.getStatus(),
+            UrlCheck urlCheck = new UrlCheck(
+                    statusCode,
                     title,
                     h1,
                     description,
@@ -69,13 +60,21 @@ public final class UrlChecksController {
 
             ctx.sessionAttribute(FLASH_TYPE, SUCCESS_TYPE);
             ctx.sessionAttribute(FLASH_MESSAGE, "Страница успешно проверена");
-            ctx.status(200);
-        } catch (Exception e) {
-            LOGGER.error("Check failed for URL ID: " + urlId, e);
+            ctx.redirect(NamedRoutes.urlPath(String.valueOf(urlId)));
+        } catch (NumberFormatException e) {
             ctx.sessionAttribute(FLASH_TYPE, DANGER_TYPE);
-            ctx.sessionAttribute(FLASH_MESSAGE, "Ошибка при проверке: " + e.getMessage());
-            ctx.status(500).result("Check failed: " + e.getMessage());
+            ctx.sessionAttribute(FLASH_MESSAGE, "Некорректный ID страницы");
+            ctx.redirect(NamedRoutes.urlsPath());
+        } catch (SQLException e) {
+            LOGGER.error("Database error", e);
+            ctx.sessionAttribute(FLASH_TYPE, DANGER_TYPE);
+            ctx.sessionAttribute(FLASH_MESSAGE, "Ошибка при сохранении проверки");
+            ctx.redirect(NamedRoutes.urlsPath());
+        } catch (IOException e) {
+            LOGGER.error("URL check error", e);
+            ctx.sessionAttribute(FLASH_TYPE, DANGER_TYPE);
+            ctx.sessionAttribute(FLASH_MESSAGE, "Ошибка при проверке URL: " + e.getMessage());
+            ctx.redirect(NamedRoutes.urlPath(ctx.pathParam("id")));
         }
-        ctx.redirect(NamedRoutes.urlPath(urlId));
     }
 }
