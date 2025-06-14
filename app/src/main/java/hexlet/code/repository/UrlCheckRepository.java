@@ -95,7 +95,6 @@ public class UrlCheckRepository extends BaseRepository {
         if (timestamp != null) {
             check.setCreatedAt(timestamp.toLocalDateTime());
         }
-
         return check;
     }
 }

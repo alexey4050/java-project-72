@@ -36,11 +36,10 @@ public class UrlRepository extends BaseRepository {
         try (var conn = dataSource.getConnection();
              var stmt = conn.prepareStatement(sql)) {
             stmt.setString(1, name);
-            var resultSet = stmt.executeQuery();
-            if (resultSet.next()) {
-                return Optional.of(mapRowToUrl(resultSet));
+            //var resultSet = stmt.executeQuery();
+            try (var resultSet = stmt.executeQuery()) {
+                return resultSet.next() ? Optional.of(mapRowToUrl(resultSet)) : Optional.empty();
             }
-            return Optional.empty();
         }
     }
 
@@ -59,11 +58,10 @@ public class UrlRepository extends BaseRepository {
         try (var conn = dataSource.getConnection();
              var stmt = conn.prepareStatement(sql)) {
             stmt.setLong(1, id);
-            var resultSet = stmt.executeQuery();
-            if (resultSet.next()) {
-                return Optional.of(mapRowToUrl(resultSet));
+            //var resultSet = stmt.executeQuery();
+            try (var resultSet = stmt.executeQuery()) {
+                return resultSet.next() ? Optional.of(mapRowToUrl(resultSet)) : Optional.empty();
             }
-            return Optional.empty();
         }
     }
 

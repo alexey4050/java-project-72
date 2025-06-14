@@ -33,7 +33,6 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 
-
 public class AppTest {
     private Javalin app;
     private static MockWebServer mockWebServer;
@@ -53,8 +52,6 @@ public class AppTest {
                 .socketTimeout(500)
                 .connectTimeout(500)
                 .defaultBaseUrl(mockUrl);
-
-
     }
 
     @AfterAll
@@ -226,7 +223,6 @@ public class AppTest {
                 .setBody(html)
                 .addHeader("Content-Type", "text/html"));
 
-        // 2. Тестируем создание URL
         var client = HttpClient.newHttpClient();
         var createRequest = HttpRequest.newBuilder()
                 .uri(URI.create("http://localhost:" + app.port() + "/urls"))
