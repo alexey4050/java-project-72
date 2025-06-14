@@ -25,8 +25,6 @@ public final class UrlsController {
     public static final String FLASH_TYPE = "flashType";
     private static final String FLASH_MESSAGE = "flashMessage";
     private static final String DANGER_TYPE = "danger";
-    private static final String INFO_TYPE = "info";
-    private static final String SUCCESS_TYPE = "success";
 
     private UrlsController() {
         throw new UnsupportedOperationException("Это служебный класс, создание экземпляров запрещено");
@@ -58,11 +56,18 @@ public final class UrlsController {
             ctx.sessionAttribute("flashType", "success");
             ctx.redirect(NamedRoutes.urlsPath());
         } catch (MalformedURLException | URISyntaxException e) {
+            LOGGER.error("Invalid URL: {}", urlString, e);
             ctx.sessionAttribute(FLASH_TYPE, DANGER_TYPE);
             ctx.sessionAttribute(FLASH_MESSAGE, "Некорректный URL: " + urlString);
             ctx.status(400);
             ctx.redirect(NamedRoutes.rootPath());
+        } catch (SQLException e) {
+            LOGGER.error("Database error", e);
+            ctx.sessionAttribute(FLASH_TYPE, DANGER_TYPE);
+            ctx.sessionAttribute(FLASH_MESSAGE, "Ошибка при сохранении URL");
+            ctx.redirect(NamedRoutes.rootPath());
         } catch (Exception e) {
+            LOGGER.error("Unexpected error", e);
             ctx.sessionAttribute(FLASH_TYPE, DANGER_TYPE);
             ctx.sessionAttribute(FLASH_MESSAGE, "Произошла непредвиденная ошибка: " + e.getMessage());
             ctx.status(500);

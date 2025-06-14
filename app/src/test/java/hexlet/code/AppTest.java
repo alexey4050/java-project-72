@@ -3,6 +3,7 @@ package hexlet.code;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import hexlet.code.model.Url;
+import hexlet.code.model.UrlCheck;
 import hexlet.code.repository.BaseRepository;
 import hexlet.code.repository.UrlCheckRepository;
 import hexlet.code.repository.UrlRepository;
@@ -26,6 +27,7 @@ import java.net.http.HttpResponse;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.sql.SQLException;
+import java.time.LocalDateTime;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -264,5 +266,30 @@ public class AppTest {
         assertTrue(showResponse.body().contains("Test Page Title"));
         assertTrue(showResponse.body().contains("Test H1 Header"));
         assertTrue(showResponse.body().contains("Test Description"));
+    }
+
+    @Test
+    public void testUrlsIndexPageBasic() throws Exception {
+        var url = new Url("https://example.com");
+        UrlRepository.save(url);
+
+        var check = new UrlCheck(200, "Test Title", "Test H1", "Test Description", url.getId());
+        UrlCheckRepository.save(check);
+
+        var client = HttpClient.newHttpClient();
+        var request = HttpRequest.newBuilder()
+                .uri(URI.create("http://localhost:" + app.port() + "/urls/" + url.getId()))
+                .GET()
+                .build();
+
+        var response = client.send(request, HttpResponse.BodyHandlers.ofString());
+        String body = response.body();
+
+        assertEquals(200, response.statusCode());
+        assertTrue(body.contains(url.getName()));
+        assertTrue(body.contains("Test Title"));
+        assertTrue(body.contains("Test H1"));
+        assertTrue(body.contains("Test Description"));
+        assertTrue(body.contains("200"));
     }
 }
