@@ -213,4 +213,56 @@ public class AppTest {
         assertFalse(response.body().contains("Некорректный URL"));
     }
 
+    @Test
+    public void testCreateCheckWithMissingTags() throws Exception {
+        String html = Files.readString(Paths.get("src/test/resources/mock_response.html"));
+
+
+        mockWebServer.enqueue(new MockResponse()
+                .setResponseCode(200)
+                .setBody(html)
+                .addHeader("Content-Type", "text/html"));
+
+        // 2. Тестируем создание URL
+        var client = HttpClient.newHttpClient();
+        var createRequest = HttpRequest.newBuilder()
+                .uri(URI.create("http://localhost:" + app.port() + "/urls"))
+                .header("Content-Type", "application/x-www-form-urlencoded")
+                .POST(HttpRequest.BodyPublishers.ofString("url=" + mockUrl))
+                .build();
+
+        var createResponse = client.send(createRequest, HttpResponse.BodyHandlers.ofString());
+        assertEquals(302, createResponse.statusCode());
+
+        String normalizedUrl = UrlUtil.normalizeUrl(mockUrl);
+        var savedUrl = UrlRepository.findByName(normalizedUrl)
+                .orElseThrow(() -> new AssertionError("URL должен быть сохранен"));
+
+        var checkRequest = HttpRequest.newBuilder()
+                .uri(URI.create("http://localhost:" + app.port() + "/urls/" + savedUrl.getId() + "/checks"))
+                .POST(HttpRequest.BodyPublishers.noBody())
+                .build();
+
+        var checkResponse = client.send(checkRequest, HttpResponse.BodyHandlers.ofString());
+        assertEquals(302, checkResponse.statusCode());
+
+        var checks = UrlCheckRepository.getChecksByUrlId(savedUrl.getId());
+        assertFalse(checks.isEmpty(), "Проверка должна быть создана");
+
+        var check = checks.get(0);
+        assertEquals(200, check.getStatusCode());
+        assertEquals("Test Page Title", check.getTitle());
+        assertEquals("Test H1 Header", check.getH1());
+        assertEquals("Test Description", check.getDescription());
+
+        var showRequest = HttpRequest.newBuilder()
+                .uri(URI.create("http://localhost:" + app.port() + "/urls/" + savedUrl.getId()))
+                .GET()
+                .build();
+
+        var showResponse = client.send(showRequest, HttpResponse.BodyHandlers.ofString());
+        assertTrue(showResponse.body().contains("Test Page Title"));
+        assertTrue(showResponse.body().contains("Test H1 Header"));
+        assertTrue(showResponse.body().contains("Test Description"));
+    }
 }

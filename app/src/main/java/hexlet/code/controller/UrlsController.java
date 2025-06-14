@@ -34,20 +34,19 @@ public final class UrlsController {
 
     public static void create(Context ctx) {
         String urlString = ctx.formParam("url");
-        try {
-            if (urlString == null || urlString.isBlank()) {
-                ctx.sessionAttribute(FLASH_TYPE, DANGER_TYPE);
-                ctx.sessionAttribute(FLASH_MESSAGE, "URL не может быть пустым");
-                ctx.status(400).result("URL cannot be empty");
-                ctx.redirect(NamedRoutes.rootPath());
-                return;
-            }
 
+        if (urlString == null || urlString.isBlank()) {
+            ctx.sessionAttribute(FLASH_TYPE, DANGER_TYPE);
+            ctx.sessionAttribute(FLASH_MESSAGE, "URL не может быть пустым");
+            ctx.redirect(NamedRoutes.rootPath());
+            return;
+        }
+        try {
             String normalizedUrl = UrlUtil.normalizeUrl(urlString);
 
             if (UrlRepository.findByName(normalizedUrl).isPresent()) {
-                ctx.sessionAttribute(FLASH_TYPE, INFO_TYPE);
-                ctx.sessionAttribute(FLASH_MESSAGE, "Сайт уже добавлен");
+                ctx.sessionAttribute("flashMessage", "Страница уже существует");
+                ctx.sessionAttribute("flashType", "info");
                 ctx.redirect(NamedRoutes.urlsPath());
                 return;
             }
@@ -55,12 +54,8 @@ public final class UrlsController {
             Url url = new Url(normalizedUrl);
             UrlRepository.save(url);
 
-            ctx.status(200);
-            ctx.result("URl успешно добавлен");
-
-            ctx.sessionAttribute(FLASH_TYPE, SUCCESS_TYPE);
-            ctx.sessionAttribute(FLASH_MESSAGE, "Сайт успешно добавлен!");
-            ctx.status(200);
+            ctx.sessionAttribute("flashMessage", "Страница успешно добавлена");
+            ctx.sessionAttribute("flashType", "success");
             ctx.redirect(NamedRoutes.urlsPath());
         } catch (MalformedURLException | URISyntaxException e) {
             ctx.sessionAttribute(FLASH_TYPE, DANGER_TYPE);
