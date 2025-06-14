@@ -48,7 +48,7 @@ public final class UrlChecksController {
             }
 
             var doc = Jsoup.parse(response.getBody());
-            String title = doc.title()!= null ? doc.title() : "";;
+            String title = doc.title()!= null ? doc.title() : "";
             String h1 = Optional.ofNullable(doc.selectFirst("h1"))
                     .map(Element::text)
                     .orElse("");
