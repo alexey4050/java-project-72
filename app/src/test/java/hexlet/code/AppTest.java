@@ -53,6 +53,8 @@ public class AppTest {
                 .socketTimeout(500)
                 .connectTimeout(500)
                 .defaultBaseUrl(mockUrl);
+
+
     }
 
     @AfterAll

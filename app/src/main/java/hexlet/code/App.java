@@ -52,7 +52,7 @@ public class App {
         LOGGER.info("Starting application configuration...");
 
         var config = new HikariConfig();
-        config.setJdbcUrl(System.getenv().getOrDefault("JDBC_DATABASE_URL", "jdbc:h2:mem:project;DB_CLOSE_DELAY=-1"));
+        config.setJdbcUrl(System.getProperty("JDBC_DATABASE_URL", "jdbc:h2:mem:project;DB_CLOSE_DELAY=-1"));
         config.setMaximumPoolSize(10);
         BaseRepository.dataSource = new HikariDataSource(config);
 
