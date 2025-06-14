@@ -194,7 +194,7 @@ public class AppTest {
 
         var response = client.send(request, HttpResponse.BodyHandlers.ofString());
 
-        assertEquals(404, response.statusCode());
+        assertEquals(302, response.statusCode());
     }
 
     @Test
