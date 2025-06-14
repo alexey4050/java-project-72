@@ -1,6 +1,5 @@
 package hexlet.code.controller;
 
-import hexlet.code.model.Url;
 import hexlet.code.model.UrlCheck;
 import hexlet.code.repository.UrlCheckRepository;
 import hexlet.code.repository.UrlRepository;
@@ -22,7 +21,6 @@ public final class UrlChecksController {
     private static final String FLASH_TYPE = "flashType";
     private static final String FLASH_MESSAGE = "flashMessage";
     private static final String DANGER_TYPE = "danger";
-    private static final String NOT_FOUND_MESSAGE = "Страница не найдена";
     private static final String SUCCESS_TYPE = "success";
 
     private UrlChecksController() {
