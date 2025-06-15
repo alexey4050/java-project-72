@@ -54,7 +54,7 @@ public final class UrlsController {
 
             ctx.sessionAttribute("flashMessage", "Страница успешно добавлена");
             ctx.sessionAttribute("flashType", "success");
-            ctx.redirect(NamedRoutes.urlsPath());
+            ctx.redirect(NamedRoutes.urlPath(String.valueOf(url.getId())));
         } catch (MalformedURLException | URISyntaxException e) {
             LOGGER.error("Invalid URL: {}", urlString, e);
             ctx.sessionAttribute(FLASH_TYPE, DANGER_TYPE);
