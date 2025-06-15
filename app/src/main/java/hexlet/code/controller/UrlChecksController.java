@@ -41,18 +41,12 @@ public final class UrlChecksController {
 
             var doc = Jsoup.connect(normalizedUrl).get();
 
-            int statusCode = 200;
-            String title = doc.title();
-            String h1 = doc.selectFirst("h1") != null ? doc.selectFirst("h1").text() : "";
-            String description = doc.selectFirst("meta[name=description]") != null
-                    ? doc.selectFirst("meta[name=description]").attr("content")
-                    : "";
-
             UrlCheck urlCheck = new UrlCheck(
-                    statusCode,
-                    title,
-                    h1,
-                    description,
+                    doc.connection().response().statusCode(),
+                    doc.title(),
+                    doc.selectFirst("h1") != null ? doc.selectFirst("h1").text() : "",
+                    doc.selectFirst("meta[name=description]") != null
+                            ? doc.selectFirst("meta[name=description]").attr("content") : "",
                     urlId
             );
 

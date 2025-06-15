@@ -60,7 +60,6 @@ public final class UrlsController {
             ctx.sessionAttribute(FLASH_TYPE, DANGER_TYPE);
             ctx.sessionAttribute(FLASH_MESSAGE, "Некорректный URL: " + urlString);
             ctx.redirect(NamedRoutes.rootPath());
-            ctx.status(422);
         } catch (SQLException e) {
             LOGGER.error("Database error", e);
             ctx.sessionAttribute(FLASH_TYPE, DANGER_TYPE);
