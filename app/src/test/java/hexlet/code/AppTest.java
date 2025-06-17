@@ -184,7 +184,6 @@ public class AppTest {
         try (var conn = dataSource.getConnection()) {
             assertThat(conn.isValid(1)).isTrue();
 
-            // Проверка возможности записи
             try (var stmt = conn.createStatement()) {
                 stmt.execute("CREATE TABLE IF NOT EXISTS test_table (id INT)");
                 stmt.execute("INSERT INTO test_table VALUES (1)");

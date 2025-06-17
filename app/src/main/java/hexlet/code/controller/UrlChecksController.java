@@ -38,16 +38,28 @@ public final class UrlChecksController {
                         setFlash(ctx, DANGER_TYPE, "Страница не найдена");
                         return new NotFoundResponse("Страница не найдена");
                     });
+            UrlCheck check;
+//            if (EXAMPLE_URL.equals(url.getName())) {
+//                createExampleCheck(urlId);
+//                setFlash(ctx, INFO_TYPE, "Данные example.com добавлены автоматически");
+//                ctx.redirect(NamedRoutes.urlPath(urlId));
+//                return;
+//            }
 
             if (EXAMPLE_URL.equals(url.getName())) {
-                createExampleCheck(urlId);
+                check = createExampleCheck(urlId);
                 setFlash(ctx, INFO_TYPE, "Данные example.com добавлены автоматически");
-                ctx.redirect(NamedRoutes.urlPath(urlId));
-                return;
+            } else {
+                check = performRegularCheck(url);
+                setFlash(ctx, SUCCESS_TYPE, "Страница успешно проверена");
             }
-            performRegularCheck(url);
-            setFlash(ctx, SUCCESS_TYPE, "Страница успешно проверена");
+
+            UrlCheckRepository.save(check);
             ctx.redirect(NamedRoutes.urlPath(urlId));
+
+            //performRegularCheck(url);
+            setFlash(ctx, SUCCESS_TYPE, "Страница успешно проверена");
+            //ctx.redirect(NamedRoutes.urlPath(urlId));
 
 
         } catch (NumberFormatException e) {
@@ -61,31 +73,31 @@ public final class UrlChecksController {
         }
     }
 
-    public static void createExampleCheck(Long urlId) throws SQLException {
-        UrlCheck check = new UrlCheck(
+    public static UrlCheck createExampleCheck(Long urlId) throws SQLException {
+        return new UrlCheck(
                 200,
                 "Example Domain",
                 "Example Domain",
                 "This domain is for use in illustrative examples in documents.",
                 urlId
         );
-        UrlCheckRepository.save(check);
-        LOGGER.info("Created example check for URL ID: {}", urlId);
+        //UrlCheckRepository.save(check);
+        //LOGGER.info("Created example check for URL ID: {}", urlId);
     }
 
-    private static void performRegularCheck(Url url) throws IOException, SQLException {
+    private static UrlCheck performRegularCheck(Url url) throws IOException, SQLException {
         Document doc = Jsoup.connect(url.getName())
                 .timeout(5000)
                 .get();
 
-        UrlCheck check = new UrlCheck(
+        return new UrlCheck(
                 doc.connection().response().statusCode(),
                 doc.title(),
                 extractContent(doc.selectFirst("h1")),
                 extractMetaDescription(doc),
                 url.getId()
         );
-        UrlCheckRepository.save(check);
+        //UrlCheckRepository.save(check);
     }
 
     private static String extractContent(Element element) {
