@@ -14,11 +14,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-
 public class UrlCheckRepository extends BaseRepository {
     private static final Logger LOGGER = LoggerFactory.getLogger(UrlCheckRepository.class);
 
     public static void save(UrlCheck urlCheck) throws SQLException {
+        LOGGER.info("Saving UrlCheck: {}", urlCheck);
         String sql = "INSERT INTO url_checks (url_id, status_code, title, h1,"
                 + " description, created_at) VALUES (?, ?, ?, ?, ?, ?)";
         try (var conn = dataSource.getConnection();
@@ -48,6 +48,7 @@ public class UrlCheckRepository extends BaseRepository {
     }
 
     public static List<UrlCheck> getChecksByUrlId(Long urlId) throws SQLException {
+        LOGGER.info("Getting checks for URL ID: {}", urlId);
         String sql = "SELECT * FROM url_checks WHERE url_id = ? ORDER BY created_at DESC";
         try (var conn = dataSource.getConnection();
              var stmt = conn.prepareStatement(sql)) {

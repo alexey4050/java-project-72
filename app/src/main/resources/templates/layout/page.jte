@@ -34,7 +34,7 @@
 
 <div class="container mt-4">
     @if(page != null && page.getFlashMessage() != null)
-        <div class="alert alert-${page.getFlashType()}">
+        <div class="alert alert-${page.getFlashType()} alert-dismissible fade show" role="alert">
             ${page.getFlashMessage()}
         </div>
     @endif

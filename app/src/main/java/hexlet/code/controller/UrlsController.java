@@ -15,6 +15,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.net.MalformedURLException;
+import java.net.URI;
 import java.net.URISyntaxException;
 import java.sql.SQLException;
 import java.util.HashMap;
@@ -45,6 +46,10 @@ public final class UrlsController {
 
         try {
             String normalizedUrl = UrlUtil.normalizeUrl(urlString);
+
+            if (!isValidDomain(normalizedUrl)) {
+                throw new MalformedURLException("Некорректный домен");
+            }
             var existingUrl = UrlRepository.findByName(normalizedUrl);
 
             if (existingUrl.isPresent()) {
@@ -128,5 +133,11 @@ public final class UrlsController {
     private static void handleError(Context ctx, String message, String redirectPath, Exception e) {
         LOGGER.error(message, e);
         setFlashAndRedirect(ctx, DANGER_TYPE, message + ": " + e.getMessage(), redirectPath);
+    }
+
+    private static boolean isValidDomain(String url) throws URISyntaxException {
+        URI uri = new URI(url);
+        String host = uri.getHost();
+        return host != null && host.matches("^([a-z0-9]+(-[a-z0-9]+)*\\.)+[a-z]{2,}$");
     }
 }

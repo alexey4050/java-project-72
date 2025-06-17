@@ -11,26 +11,33 @@ public final class UrlUtil {
     }
 
     public static String normalizeUrl(String urlString) throws URISyntaxException, MalformedURLException {
+        if (urlString == null || urlString.isBlank()) {
+            throw new MalformedURLException("URL не может быть пустым");
+        }
+
         if (!urlString.startsWith("http://") && !urlString.startsWith("https://")) {
             urlString = "http://" + urlString;
         }
 
-        URI uri = new URI(urlString);
+        URI uri = new URI(urlString).parseServerAuthority();
         URL url = uri.toURL();
 
-        String protocol = url.getProtocol();
-        String host = url.getHost();
+        if (url.getHost() == null || url.getHost().isBlank()) {
+            throw new MalformedURLException("Некорректный URL: отсутствует host");
+        }
+
+        String protocol = url.getProtocol().toLowerCase();
+        String host = url.getHost().toLowerCase();
         int port = url.getPort();
 
-        StringBuilder sb = new StringBuilder();
-        sb.append(protocol).append("://").append(host);
-        if (port != -1) {
-            sb.append(":").append(port);
+        StringBuilder normalized = new StringBuilder();
+        normalized.append(protocol).append("://").append(host);
+
+        if (port != -1 && !((protocol.equals("http") && port == 80)
+                || (protocol.equals("https") && port == 443))) {
+            normalized.append(":").append(port);
         }
-        String result = sb.toString();
-        while (result.endsWith("/")) {
-            result = result.substring(0, result.length() - 1);
-        }
-        return result;
+
+        return normalized.toString();
     }
 }
