@@ -20,7 +20,6 @@ import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.BeforeEach;
-
 import java.io.IOException;
 //import java.net.URI;
 //import java.net.http.HttpClient;
@@ -31,8 +30,6 @@ import java.nio.file.Paths;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Optional;
-
-
 //import static org.junit.jupiter.api.Assertions.assertEquals;
 //import static org.junit.jupiter.api.Assertions.assertNotNull;
 //import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -204,8 +201,6 @@ public class AppTest {
             assertThat(conn.isValid(1)).isTrue();
         }
     }
-
-//
 //    @BeforeAll
 //    static void setupAll() throws IOException, SQLException {
 //        var config = new HikariConfig();

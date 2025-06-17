@@ -60,7 +60,6 @@ public final class UrlsController {
                 UrlChecksController.createExampleCheck(url.getId());
                 setFlashAndRedirect(ctx, INFO_TYPE, "Example.com добавлен с тестовыми данными",
                         NamedRoutes.urlsPath());
-
             } else {
                 setFlashAndRedirect(ctx, SUCCESS_TYPE, "Страница успешно добавлена",
                         NamedRoutes.urlsPath());
