@@ -14,5 +14,6 @@ public class BasePage {
     public void setFlash(String type, String message) {
         this.flashType = type;
         this.flashMessage = message;
+
     }
 }

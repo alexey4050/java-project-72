@@ -8,6 +8,11 @@
 page = page,
 content = @`
     <div class="container mt-4">
+        @if(page.getExampleData() != null)
+            <div class="alert alert-info mb-4">
+                Данные с example.com: ${page.getExampleData()}
+            </div>
+        @endif
         <h1 class="h1 mb-1">Сайт: ${page.getUrl().getName()}</h1>
         <table class="table table-bordered">
             <tr>
@@ -35,7 +40,7 @@ content = @`
                 <th>Код ответа</th>
                 <th>Title</th>
                 <th>H1</th>
-                <th>Description</th>
+                <th class="description-column">Description</th>
                 <th>Дата проверки</th>
             </tr>
             </thead>
@@ -52,9 +57,7 @@ content = @`
                             <td>${check.getTitle() != null ? check.getTitle() : "N/A"}</td>
                             <td>${check.getH1() != null ? check.getH1() : "N/A"}</td>
                             <td>@if(check.getDescription() != null && !check.getDescription().isEmpty())
-                                ${check.getDescription().length() > 50 ?
-                                            check.getDescription().substring(0, 50) + "..." :
-                                            check.getDescription()}
+                                ${check.getDescription()}
                                 @else
                                     N/A
                                 @endif</td>

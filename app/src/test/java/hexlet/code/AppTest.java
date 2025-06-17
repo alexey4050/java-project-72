@@ -11,6 +11,7 @@ import hexlet.code.util.DataBase;
 import hexlet.code.util.NamedRoutes;
 import hexlet.code.util.UrlUtil;
 import io.javalin.Javalin;
+import io.javalin.http.Context;
 import io.javalin.testtools.JavalinTest;
 import kong.unirest.Unirest;
 import okhttp3.mockwebserver.MockResponse;
@@ -28,14 +29,19 @@ import java.io.IOException;
 //import java.net.http.HttpResponse;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.Map;
+import java.util.Optional;
 
 
 //import static org.junit.jupiter.api.Assertions.assertEquals;
 //import static org.junit.jupiter.api.Assertions.assertNotNull;
 //import static org.junit.jupiter.api.Assertions.assertTrue;
 //import static org.junit.jupiter.api.Assertions.assertFalse;
+import static hexlet.code.repository.BaseRepository.dataSource;
 import static org.assertj.core.api.Assertions.assertThat;
+
 
 public class AppTest {
 
@@ -45,7 +51,7 @@ public class AppTest {
     static void setupAll() throws IOException, SQLException {
         var config = new HikariConfig();
         config.setJdbcUrl("jdbc:h2:mem:test;DB_CLOSE_DELAY=-1");
-        BaseRepository.dataSource = new HikariDataSource(config);
+        dataSource = new HikariDataSource(config);
         DataBase.runMigrations();
 
         mockWebServer = new MockWebServer();
@@ -61,8 +67,8 @@ public class AppTest {
     @AfterAll
     static void tearDown() throws IOException {
         mockWebServer.shutdown();
-        if (BaseRepository.dataSource != null) {
-            BaseRepository.dataSource.close();
+        if (dataSource != null) {
+            dataSource.close();
         }
         Unirest.shutDown();
     }
@@ -136,8 +142,7 @@ public class AppTest {
                     .setResponseCode(200)
                     .setBody(html)
                     .addHeader("Content-Type", "text/html"));
-
-            // Создаем URL
+            
             var createResponse = client.post("/urls", "url=" + mockUrl);
             assertThat(createResponse.code()).isEqualTo(200);
 
@@ -145,11 +150,9 @@ public class AppTest {
             var savedUrl = UrlRepository.findByName(normalizedUrl)
                     .orElseThrow(() -> new AssertionError("URL должен быть сохранен"));
 
-            // Проверяем URL
             var checkResponse = client.post("/urls/" + savedUrl.getId() + "/checks");
             assertThat(checkResponse.code()).isEqualTo(200);
 
-            // Проверяем результаты
             var checks = UrlCheckRepository.getChecksByUrlId(savedUrl.getId());
             assertThat(checks).isNotEmpty();
 
@@ -159,7 +162,6 @@ public class AppTest {
             assertThat(check.getH1()).isEqualTo("Test H1 Header");
             assertThat(check.getDescription()).isEqualTo("Test Description");
 
-            // Проверяем страницу просмотра
             var showResponse = client.get("/urls/" + savedUrl.getId());
             assertThat(showResponse.code()).isEqualTo(200);
             String showBody = showResponse.body().string();
@@ -169,6 +171,39 @@ public class AppTest {
             assertThat(showBody).contains("Test H1 Header");
             assertThat(showBody).contains("Test Description");
         });
+    }
+
+    @Test
+    void testSaveAndFind() throws SQLException {
+        Url url = new Url("https://example.com");
+        UrlRepository.save(url);
+
+        Optional<Url> found = UrlRepository.findByName("https://example.com");
+        assertThat(found).isPresent();
+        assertThat(found.get().getName()).isEqualTo("https://example.com");
+    }
+
+    @Test
+    void testDatabaseConnection() throws SQLException {
+        try (var conn = dataSource.getConnection()) {
+            assertThat(conn.isValid(1)).isTrue();
+
+            // Проверка возможности записи
+            try (var stmt = conn.createStatement()) {
+                stmt.execute("CREATE TABLE IF NOT EXISTS test_table (id INT)");
+                stmt.execute("INSERT INTO test_table VALUES (1)");
+                ResultSet rs = stmt.executeQuery("SELECT * FROM test_table");
+                assertThat(rs.next()).isTrue();
+                assertThat(rs.getInt(1)).isEqualTo(1);
+            }
+        }
+    }
+
+    @Test
+    void testConnection() throws SQLException {
+        try (var conn = BaseRepository.dataSource.getConnection()) {
+            assertThat(conn.isValid(1)).isTrue();
+        }
     }
 
 //
