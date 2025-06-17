@@ -9,7 +9,6 @@ import java.util.List;
 
 @AllArgsConstructor
 @Getter
-@Setter
 @NoArgsConstructor
 
 public class UrlPage extends BasePage {

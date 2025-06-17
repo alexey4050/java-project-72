@@ -11,7 +11,6 @@ import hexlet.code.util.DataBase;
 import hexlet.code.util.NamedRoutes;
 import hexlet.code.util.UrlUtil;
 import io.javalin.Javalin;
-import io.javalin.http.Context;
 import io.javalin.testtools.JavalinTest;
 import kong.unirest.Unirest;
 import okhttp3.mockwebserver.MockResponse;
@@ -31,7 +30,6 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.Map;
 import java.util.Optional;
 
 
@@ -47,6 +45,7 @@ public class AppTest {
 
     private static MockWebServer mockWebServer;
     private static String mockUrl;
+
     @BeforeAll
     static void setupAll() throws IOException, SQLException {
         var config = new HikariConfig();
@@ -142,7 +141,7 @@ public class AppTest {
                     .setResponseCode(200)
                     .setBody(html)
                     .addHeader("Content-Type", "text/html"));
-            
+
             var createResponse = client.post("/urls", "url=" + mockUrl);
             assertThat(createResponse.code()).isEqualTo(200);
 

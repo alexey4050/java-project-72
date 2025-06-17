@@ -59,7 +59,8 @@ public final class UrlsController {
             if (EXAMPLE_URL.equals(normalizedUrl)) {
                 UrlChecksController.createExampleCheck(url.getId());
                 setFlashAndRedirect(ctx, INFO_TYPE, "Example.com добавлен с тестовыми данными",
-                        NamedRoutes.urlsPath());;
+                        NamedRoutes.urlsPath());
+
             } else {
                 setFlashAndRedirect(ctx, SUCCESS_TYPE, "Страница успешно добавлена",
                         NamedRoutes.urlsPath());
