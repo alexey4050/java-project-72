@@ -19,6 +19,7 @@ public class UrlRepository extends BaseRepository {
             stmt.setString(1, url.getName());
             var createdAt = LocalDateTime.now();
             stmt.setTimestamp(2, Timestamp.valueOf(createdAt));
+
             stmt.executeUpdate();
 
             var generateKeys = stmt.getGeneratedKeys();

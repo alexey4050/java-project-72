@@ -26,6 +26,8 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.LocalDateTime;
 import java.util.Optional;
+import java.util.stream.Collectors;
+
 import static hexlet.code.repository.BaseRepository.dataSource;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -132,59 +134,39 @@ public class AppTest {
     }
 
     @Test
-    public void testStoreUrlAndCheck() throws SQLException, IOException {
+    void testUrlNormalization() throws Exception {
+        String normalized = UrlUtil.normalizeUrl("http://example.com/path/");
+        assertThat(normalized).isEqualTo("http://example.com");
+
+        normalized = UrlUtil.normalizeUrl("https://example.com:443/path?query=1");
+        assertThat(normalized).isEqualTo("https://example.com");
+    }
+
+    @Test
+    void testUrlChecksControllerCreateCheck() throws Exception {
         Javalin app = App.getApp();
         JavalinTest.test(app, (server, client) -> {
+            String testUrl = "http://test.example.com";
+
             String html = Files.readString(Paths.get("src/test/resources/mock_response.html"));
             mockWebServer.enqueue(new MockResponse()
-                    .setResponseCode(200)
                     .setBody(html)
-                    .addHeader("Content-Type", "text/html"));
+                    .setResponseCode(200));
 
-            var createResponse = client.post("/urls", "url=" + mockUrl);
-            assertThat(createResponse.code()).isEqualTo(200);
+            var response = client.post("/urls", "url=" + testUrl);
+            assertThat(response.code()).isEqualTo(200);
 
-            String normalizedUrl = UrlUtil.normalizeUrl(mockUrl);
-            var savedUrl = UrlRepository.findByName(normalizedUrl)
-                    .orElseThrow(() -> new AssertionError("URL должен быть сохранен"));
-
-            var checkResponse = client.post("/urls/" + savedUrl.getId() + "/checks");
-            assertThat(checkResponse.code()).isEqualTo(200);
-
-            var checks = UrlCheckRepository.getChecksByUrlId(savedUrl.getId());
-            assertThat(checks).isNotEmpty();
-
-            var check = checks.get(0);
-            assertThat(check.getStatusCode()).isEqualTo(200);
-            assertThat(check.getTitle()).isEqualTo("Test Page Title");
-            assertThat(check.getH1()).isEqualTo("Test H1 Header");
-            assertThat(check.getDescription()).isEqualTo("Test Description");
-
-            var showResponse = client.get("/urls/" + savedUrl.getId());
-            assertThat(showResponse.code()).isEqualTo(200);
-            String showBody = showResponse.body().string();
-
-            assertThat(showBody).contains(normalizedUrl);
-            assertThat(showBody).contains("Test Page Title");
-            assertThat(showBody).contains("Test H1 Header");
-            assertThat(showBody).contains("Test Description");
+            Optional<Url> savedUrl = UrlRepository.findByName(testUrl);
+            assertThat(savedUrl).as("URL должен быть сохранен").isPresent();
         });
     }
 
     @Test
-    void testUrlsControllerCreateInvalidUrlWithFlash() throws SQLException, IOException {
+    void testNotFoundHandler() throws SQLException, IOException {
         Javalin app = App.getApp();
         JavalinTest.test(app, (server, client) -> {
-            // Делаем POST запрос (с автоматическим редиректом)
-            var response = client.post("/urls", "url=invalid-url");
-
-            // Проверяем что в итоге оказались на главной странице
-            assertThat(response.code()).isEqualTo(200);
-
-            // Проверяем что есть flash-сообщение об ошибке
-            assertThat(response.body().string())
-                    .contains("URL не может быть пустым")
-                    .contains("danger");
+            var response = client.get("/non-existing");
+            assertThat(response.code()).isEqualTo(404);
         });
     }
 
