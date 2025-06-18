@@ -7,12 +7,9 @@ import org.slf4j.LoggerFactory;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.ResultSet;
-import java.sql.PreparedStatement;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 public class UrlCheckRepository extends BaseRepository {
     private static final Logger LOGGER = LoggerFactory.getLogger(UrlCheckRepository.class);
@@ -22,7 +19,7 @@ public class UrlCheckRepository extends BaseRepository {
         String sql = "INSERT INTO url_checks (url_id, status_code, title, h1,"
                 + " description, created_at) VALUES (?, ?, ?, ?, ?, ?)";
         try (var conn = dataSource.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+             var stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             stmt.setLong(1, urlCheck.getUrlId());
             stmt.setInt(2, urlCheck.getStatusCode());
             stmt.setString(3, urlCheck.getTitle());
@@ -63,20 +60,21 @@ public class UrlCheckRepository extends BaseRepository {
         }
     }
 
-    public static Optional<UrlCheck> getLastCheckByUrlId(Long urlId) throws SQLException {
-        String sql = "SELECT * FROM url_checks WHERE url_id = ? "
-                + "ORDER BY created_at DESC FETCH FIRST 1 ROW ONLY";
+    public static Map<Long, UrlCheck> getLastChecksForAllUrls() throws SQLException {
+        LOGGER.info("Getting last checks for all URLs");
+        String sql = "SELECT DISTINCT ON (url_id) * FROM url_checks ORDER BY url_id, created_at DESC";
         try (var conn = dataSource.getConnection();
-             var stmt = conn.prepareStatement(sql)) {
-            stmt.setLong(1, urlId);
-            try (var resultSet = stmt.executeQuery()) {
-                if (resultSet.next()) {
-                    return Optional.of(mapRowToUrlCheck(resultSet));
-                }
-                return Optional.empty();
+             var stmt = conn.prepareStatement(sql);
+             var resultSet = stmt.executeQuery()) {
+
+            var lastChecks = new HashMap<Long, UrlCheck>();
+            while (resultSet.next()) {
+                UrlCheck check = mapRowToUrlCheck(resultSet);
+                lastChecks.put(check.getUrlId(), check);
             }
+            return lastChecks;
         } catch (SQLException e) {
-            LOGGER.error("Failed to get last check for URL ID: {}", urlId, e);
+            LOGGER.error("Failed to get last checks for all URLs", e);
             throw e;
         }
     }

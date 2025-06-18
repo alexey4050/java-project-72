@@ -12,9 +12,9 @@
     <title>Анализатор страниц</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.6/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
-<body class="d-flex flex-column min-vh-100 bg-light">
-<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-    <div class="container bg-dark">
+<body class="d-flex flex-column min-vh-100">
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark px-3">
+    <div class="container-fluid">
         <a class="navbar-brand" href="${NamedRoutes.rootPath()}">Анализатор страниц</a>
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>
@@ -32,7 +32,7 @@
     </div>
 </nav>
 
-<div class="container mt-4">
+<div class="flex-grow-1">
     @if(page != null && page.getFlashMessage() != null)
         <div class="alert alert-${page.getFlashType()} alert-dismissible fade show" role="alert">
             ${page.getFlashMessage()}

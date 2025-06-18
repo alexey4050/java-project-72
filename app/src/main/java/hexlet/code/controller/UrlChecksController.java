@@ -18,94 +18,54 @@ import java.sql.SQLException;
 import java.util.Optional;
 
 public final class UrlChecksController {
-    private static final Logger LOGGER = LoggerFactory.getLogger(UrlChecksController.class);
-    private static final String FLASH_TYPE = "flashType";
-    private static final String FLASH_MESSAGE = "flashMessage";
-    private static final String DANGER_TYPE = "danger";
     private static final String SUCCESS_TYPE = "success";
     private static final String INFO_TYPE = "info";
-    private static final String EXAMPLE_URL = "https://www.example.com";
 
     private UrlChecksController() {
         throw new UnsupportedOperationException("Utility class");
     }
 
     public static void create(Context ctx) {
+        Long urlId;
         try {
-            Long urlId = ctx.pathParamAsClass("id", Long.class).get();
-            Url url = UrlRepository.findById(urlId)
-                    .orElseThrow(() -> {
-                        setFlash(ctx, DANGER_TYPE, "Страница не найдена");
-                        return new NotFoundResponse("Страница не найдена");
-                    });
+            urlId = ctx.pathParamAsClass("id", Long.class).get();
+        } catch (NumberFormatException e) {
+            UrlsController.handleError(ctx, "Некорректный ID страницы", NamedRoutes.urlsPath(), e);
+            return;
+        }
 
-            if (EXAMPLE_URL.equals(url.getName())) {
-                createExampleCheck(urlId);
-                setFlash(ctx, INFO_TYPE, "Данные example.com добавлены автоматически");
-                ctx.redirect(NamedRoutes.urlPath(urlId));
+        try {
+            Url url = UrlRepository.findById(urlId)
+                    .orElseThrow(() -> new NotFoundResponse("Страница не найдена"));
+
+            if (UrlsController.EXAMPLE_URL.equals(url.getName())) {
+                UrlsController.createExampleCheck(urlId);
+                UrlsController.setFlashAndRedirect(ctx, INFO_TYPE,
+                        "Данные example.com добавлены автоматически", NamedRoutes.urlPath(urlId));
                 return;
             }
-            performRegularCheck(url);
-            setFlash(ctx, SUCCESS_TYPE, "Страница успешно проверена");
-            ctx.redirect(NamedRoutes.urlPath(urlId));
 
+            Document doc = Jsoup.connect(url.getName()).timeout(5000).get();
+            UrlCheck check = new UrlCheck(
+                    doc.connection().response().statusCode(),
+                    doc.title(),
+                    Optional.ofNullable(doc.selectFirst("h1")).map(Element::text).orElse(null),
+                    Optional.ofNullable(doc.selectFirst("meta[name=description]"))
+                            .map(el -> el.attr("content").trim()).orElse(null),
+                    url.getId()
+            );
+            UrlCheckRepository.save(check);
 
-        } catch (NumberFormatException e) {
-            handleError(ctx, "Некорректный ID страницы", NamedRoutes.urlsPath(), e);
         } catch (SQLException e) {
-            handleError(ctx, "Ошибка базы данных", NamedRoutes.urlsPath(), e);
+            UrlsController.handleError(ctx, "Ошибка базы данных", NamedRoutes.urlsPath(), e);
         } catch (IOException e) {
-            handleError(ctx, "Ошибка при проверке URL", NamedRoutes.urlPath(ctx.pathParam("id")), e);
+            UrlsController.handleError(ctx, "Ошибка при проверке URL",
+                    NamedRoutes.urlPath(urlId.toString()), e);
         } catch (Exception e) {
-            handleError(ctx, "Непредвиденная ошибка", NamedRoutes.urlsPath(), e);
+            UrlsController.handleError(ctx, "Непредвиденная ошибка", NamedRoutes.urlsPath(), e);
         }
-    }
-
-    public static void createExampleCheck(Long urlId) throws SQLException {
-        UrlCheck check = new UrlCheck(
-                200,
-                "Example Domain",
-                "Example Domain",
-                "This domain is for use in illustrative examples in documents.",
-                urlId
-        );
-        UrlCheckRepository.save(check);
-        LOGGER.info("Created example check for URL ID: {}", urlId);
-    }
-
-    private static void performRegularCheck(Url url) throws IOException, SQLException {
-        Document doc = Jsoup.connect(url.getName())
-                .timeout(5000)
-                .get();
-
-        UrlCheck check = new UrlCheck(
-                doc.connection().response().statusCode(),
-                doc.title(),
-                extractContent(doc.selectFirst("h1")),
-                extractMetaDescription(doc),
-                url.getId()
-        );
-        UrlCheckRepository.save(check);
-    }
-
-    private static String extractContent(Element element) {
-        return element != null ? element.text() : null;
-    }
-
-    private static String extractMetaDescription(Document doc) {
-        return Optional.ofNullable(doc.selectFirst("meta[name=description]"))
-                .map(el -> el.attr("content").trim())
-                .orElse(null);
-    }
-
-    private static void setFlash(Context ctx, String type, String message) {
-        ctx.sessionAttribute(FLASH_TYPE, type);
-        ctx.sessionAttribute(FLASH_MESSAGE, message);
-    }
-
-    private static void handleError(Context ctx, String message, String redirectPath, Exception e) {
-        LOGGER.error(message, e);
-        setFlash(ctx, DANGER_TYPE, message + ": " + e.getMessage());
-        ctx.redirect(redirectPath);
+        UrlsController.setFlashAndRedirect(ctx, SUCCESS_TYPE,
+                "Страница успешно проверена", NamedRoutes.urlPath(urlId));
     }
 }
+

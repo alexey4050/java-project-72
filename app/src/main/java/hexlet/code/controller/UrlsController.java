@@ -17,19 +17,17 @@ import org.slf4j.LoggerFactory;
 import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.sql.SQLException;
-import java.util.HashMap;
-import java.util.Map;
 
 import static io.javalin.rendering.template.TemplateUtil.model;
 
 public final class UrlsController {
     private static final Logger LOGGER = LoggerFactory.getLogger(UrlsController.class);
     public static final String FLASH_TYPE = "flashType";
-    private static final String FLASH_MESSAGE = "flashMessage";
-    private static final String DANGER_TYPE = "danger";
-    private static final String SUCCESS_TYPE = "success";
-    private static final String INFO_TYPE = "info";
-    private static final String EXAMPLE_URL = "https://www.example.com";
+    public static final String FLASH_MESSAGE = "flashMessage";
+    public static final String DANGER_TYPE = "danger";
+    public static final String SUCCESS_TYPE = "success";
+    public static final String INFO_TYPE = "info";
+    public static final String EXAMPLE_URL = "https://www.example.com";
 
     private UrlsController() {
         throw new UnsupportedOperationException("Это служебный класс, создание экземпляров запрещено");
@@ -57,13 +55,11 @@ public final class UrlsController {
             UrlRepository.save(url);
 
             if (EXAMPLE_URL.equals(normalizedUrl)) {
-                UrlChecksController.createExampleCheck(url.getId());
-                setFlashAndRedirect(ctx, INFO_TYPE, "Example.com добавлен с тестовыми данными",
-                        NamedRoutes.urlsPath());
-            } else {
-                setFlashAndRedirect(ctx, SUCCESS_TYPE, "Страница успешно добавлена",
-                        NamedRoutes.urlsPath());
+                createExampleCheck(url.getId());
             }
+
+            setFlashAndRedirect(ctx, SUCCESS_TYPE, "Страница успешно добавлена",
+                    NamedRoutes.urlsPath());
 
         } catch (MalformedURLException | URISyntaxException e) {
             handleError(ctx, "Некорректный URL", NamedRoutes.rootPath(), e);
@@ -77,12 +73,7 @@ public final class UrlsController {
     public static void index(Context ctx) {
         try {
             var urls = UrlRepository.getEntities();
-            Map<Long, UrlCheck> lastChecks = new HashMap<>();
-
-            for (Url url : urls) {
-                var lastCheck = UrlCheckRepository.getLastCheckByUrlId(url.getId());
-                lastCheck.ifPresent(check -> lastChecks.put(url.getId(), check));
-            }
+            var lastChecks = UrlCheckRepository.getLastChecksForAllUrls();
 
             var page = new UrlsPage(urls, lastChecks);
             transferFlashAttributes(ctx, page);
@@ -111,7 +102,18 @@ public final class UrlsController {
         }
     }
 
-    private static void transferFlashAttributes(Context ctx, BasePage page) {
+    public static void createExampleCheck(Long urlId) throws SQLException {
+        UrlCheck check = new UrlCheck(
+                200,
+                "Example Domain",
+                "Example Domain",
+                "This domain is for use in illustrative examples in documents.",
+                urlId
+        );
+        UrlCheckRepository.save(check);
+    }
+
+    public static void transferFlashAttributes(Context ctx, BasePage page) {
         String flashType = ctx.consumeSessionAttribute(FLASH_TYPE);
         String flashMessage = ctx.consumeSessionAttribute(FLASH_MESSAGE);
         if (flashType != null && flashMessage != null) {
@@ -119,13 +121,13 @@ public final class UrlsController {
         }
     }
 
-    private static void setFlashAndRedirect(Context ctx, String type, String message, String path) {
+    public static void setFlashAndRedirect(Context ctx, String type, String message, String path) {
         ctx.sessionAttribute(FLASH_TYPE, type);
         ctx.sessionAttribute(FLASH_MESSAGE, message);
         ctx.redirect(path);
     }
 
-    private static void handleError(Context ctx, String message, String redirectPath, Exception e) {
+    public static void handleError(Context ctx, String message, String redirectPath, Exception e) {
         LOGGER.error(message, e);
         setFlashAndRedirect(ctx, DANGER_TYPE, message + ": " + e.getMessage(), redirectPath);
     }

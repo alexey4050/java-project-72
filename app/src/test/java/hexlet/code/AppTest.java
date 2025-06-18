@@ -21,6 +21,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.BeforeEach;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.sql.ResultSet;
@@ -66,6 +67,67 @@ public class AppTest {
     @BeforeEach
     void setupEach() throws SQLException {
         DataBase.cleanBase();
+    }
+
+    @Test
+    void testUrlCheckCreationAndFields() throws Exception {
+        Javalin app = App.getApp();
+        JavalinTest.test(app, (server, client) -> {
+            String testHtml = Files.readString(
+                    Paths.get("src/test/resources/mock_response.html"),
+                    StandardCharsets.UTF_8
+            );
+
+            mockWebServer.enqueue(new MockResponse()
+                    .setBody(testHtml)
+                    .setResponseCode(200));
+
+            String testUrl = mockWebServer.url("/").toString();
+            String normalizedUrl = UrlUtil.normalizeUrl(testUrl);
+
+            var createResponse = client.post("/urls", "url=" + testUrl);
+            assertThat(createResponse.code()).isEqualTo(200);
+
+            Optional<Url> savedUrl = UrlRepository.findByName(normalizedUrl);
+            assertThat(savedUrl).as("URL должен быть сохранен").isPresent();
+            Long urlId = savedUrl.get().getId();
+
+            var checkResponse = client.post("/urls/" + urlId + "/checks");
+            assertThat(checkResponse.code()).isEqualTo(200);
+
+            var checks = UrlCheckRepository.getChecksByUrlId(urlId);
+            assertThat(checks)
+                    .as("Проверка URL должна быть сохранена")
+                    .hasSize(1);
+
+            UrlCheck check = checks.get(0);
+            assertThat(check.getUrlId()).isEqualTo(urlId);
+            assertThat(check.getStatusCode()).isEqualTo(200);
+            assertThat(check.getTitle()).isEqualTo("Test Page Title");
+            assertThat(check.getH1()).isEqualTo("Test H1 Heading");
+            assertThat(check.getDescription()).isEqualTo("Test Description");
+            assertThat(check.getCreatedAt()).isBeforeOrEqualTo(LocalDateTime.now());
+
+            assertThat(check.getId()).isNotNull();
+
+            var showResponse = client.get("/urls/" + urlId);
+            assertThat(showResponse.code()).isEqualTo(200);
+            String body = showResponse.body().string();
+
+            assertThat(body).contains("Test Page Title");
+            assertThat(body).contains("Test H1 Heading");
+            assertThat(body).contains("Test Description");
+            assertThat(body).contains("200");
+        });
+    }
+
+    @Test
+    void testUrlNormalization() throws Exception {
+        String normalized = UrlUtil.normalizeUrl("http://example.com/path/");
+        assertThat(normalized).isEqualTo("http://example.com");
+
+        normalized = UrlUtil.normalizeUrl("https://example.com:443/path?query=1");
+        assertThat(normalized).isEqualTo("https://example.com");
     }
 
     @Test
@@ -132,15 +194,6 @@ public class AppTest {
             assertThat(body).contains("Test Description");
             assertThat(body).contains("200");
         });
-    }
-
-    @Test
-    void testUrlNormalization() throws Exception {
-        String normalized = UrlUtil.normalizeUrl("http://example.com/path/");
-        assertThat(normalized).isEqualTo("http://example.com");
-
-        normalized = UrlUtil.normalizeUrl("https://example.com:443/path?query=1");
-        assertThat(normalized).isEqualTo("https://example.com");
     }
 
     @Test
