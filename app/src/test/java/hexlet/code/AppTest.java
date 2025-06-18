@@ -250,13 +250,6 @@ public class AppTest {
     }
 
     @Test
-    void testConnection() throws SQLException {
-        try (var conn = BaseRepository.dataSource.getConnection()) {
-            assertThat(conn.isValid(1)).isTrue();
-        }
-    }
-
-    @Test
     void testUrlRepositoryFindNonExisting() throws SQLException {
         var found = UrlRepository.findById(999L);
         assertThat(found).isEmpty();

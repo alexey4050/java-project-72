@@ -30,4 +30,3 @@ public class UrlCheck {
         this.createdAt = LocalDateTime.now();
     }
 }
-
