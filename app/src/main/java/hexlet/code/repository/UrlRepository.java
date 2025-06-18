@@ -17,9 +17,7 @@ public class UrlRepository extends BaseRepository {
         try (var conn = dataSource.getConnection();
              var stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             stmt.setString(1, url.getName());
-            var createdAt = LocalDateTime.now();
-            stmt.setTimestamp(2, Timestamp.valueOf(createdAt));
-
+            stmt.setTimestamp(2, Timestamp.valueOf(LocalDateTime.now()));
             stmt.executeUpdate();
 
             var generateKeys = stmt.getGeneratedKeys();
@@ -43,12 +41,11 @@ public class UrlRepository extends BaseRepository {
     }
 
     private static Url mapRowToUrl(ResultSet resultSet) throws SQLException {
-        Long id = resultSet.getLong("id");
-        String name = resultSet.getString("name");
-        LocalDateTime createdAt = resultSet.getTimestamp("created_at").toLocalDateTime();
-        Url url = new Url(name);
-        url.setId(id);
-        url.setCreatedAt(createdAt);
+        Url url = new Url(
+                resultSet.getString("name")
+        );
+        url.setId(resultSet.getLong("id"));
+        url.setCreatedAt(resultSet.getTimestamp("created_at").toLocalDateTime());
         return url;
     }
 
