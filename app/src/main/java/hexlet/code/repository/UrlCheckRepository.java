@@ -6,7 +6,6 @@ import org.slf4j.LoggerFactory;
 
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.sql.ResultSet;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -19,22 +18,18 @@ public class UrlCheckRepository extends BaseRepository {
 
     public static void save(UrlCheck urlCheck) throws SQLException {
         LOGGER.info("Saving UrlCheck: {}", urlCheck);
-        String sql = "INSERT INTO url_checks (url_id, status_code, title,"
-                + " description, h1, created_at) VALUES (?, ?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO url_checks ( status_code, title,"
+                + " description, h1, url_id, created_at) VALUES (?, ?, ?, ?, ?, ?)";
         try (var conn = dataSource.getConnection();
              var stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
-            stmt.setLong(1, urlCheck.getUrlId());
-            stmt.setInt(2, urlCheck.getStatusCode());
-            stmt.setString(3, urlCheck.getTitle());
+            stmt.setInt(1, urlCheck.getStatusCode());
+            stmt.setString(2, urlCheck.getTitle());
+            stmt.setString(3, urlCheck.getH1());
             stmt.setString(4, urlCheck.getDescription());
-            stmt.setString(5, urlCheck.getH1());
+            stmt.setLong(5, urlCheck.getUrlId());
             var createdAt = LocalDateTime.now();
             stmt.setTimestamp(6, Timestamp.valueOf(createdAt));
-            int affectedRows = stmt.executeUpdate();
-            if (affectedRows == 0) {
-                throw new SQLException("Creating check failed, no rows affected.");
-            }
-
+            stmt.executeUpdate();
             var generatedKeys = stmt.getGeneratedKeys();
             if (generatedKeys.next()) {
                 urlCheck.setId(generatedKeys.getLong(1));
@@ -50,53 +45,49 @@ public class UrlCheckRepository extends BaseRepository {
     public static List<UrlCheck> getChecksByUrlId(Long urlId) throws SQLException {
         LOGGER.info("Getting checks for URL ID: {}", urlId);
         String sql = "SELECT * FROM url_checks WHERE url_id = ? ORDER BY created_at DESC";
+        var checks = new ArrayList<UrlCheck>();
         try (var conn = dataSource.getConnection();
              var stmt = conn.prepareStatement(sql)) {
             stmt.setLong(1, urlId);
-            try (var resultSet = stmt.executeQuery()) {
-                var checks = new ArrayList<UrlCheck>();
-                while (resultSet.next()) {
-                    checks.add(mapRowToUrlCheck(resultSet));
-                }
-                return checks;
+            var resultSet = stmt.executeQuery();
+            while (resultSet.next()) {
+                var id = resultSet.getLong("id");
+                var statusCode = resultSet.getInt("status_code");
+                var title = resultSet.getString("title");
+                var h1 = resultSet.getString("h1");
+                var description = resultSet.getString("description");
+                var createAt = resultSet.getTimestamp("created_at").toLocalDateTime();
+                var dataToSave = new UrlCheck(statusCode, title, h1, description, urlId, createAt);
+                dataToSave.setId(id);
+                checks.add(dataToSave);
             }
+            return checks;
         }
     }
 
     public static Map<Long, UrlCheck> getLastChecksForAllUrls() throws SQLException {
         LOGGER.info("Getting last checks for all URLs");
         String sql = "SELECT DISTINCT ON (url_id) * FROM url_checks ORDER BY url_id, created_at DESC";
+        var lastChecks = new HashMap<Long, UrlCheck>();
         try (var conn = dataSource.getConnection();
-             var stmt = conn.prepareStatement(sql);
-             var resultSet = stmt.executeQuery()) {
-
-            var lastChecks = new HashMap<Long, UrlCheck>();
+             var stmt = conn.prepareStatement(sql)) {
+            var resultSet = stmt.executeQuery();
             while (resultSet.next()) {
-                UrlCheck check = mapRowToUrlCheck(resultSet);
-                lastChecks.put(check.getUrlId(), check);
+                var listOfUrls = new UrlCheck();
+                listOfUrls.setId(resultSet.getLong("id"));
+                listOfUrls.setStatusCode(resultSet.getInt("status_code"));
+                listOfUrls.setTitle(resultSet.getString("title"));
+                listOfUrls.setH1(resultSet.getString("h1"));
+                listOfUrls.setDescription(resultSet.getString("description"));
+                listOfUrls.setCreatedAt(resultSet.getTimestamp("created_at").toLocalDateTime());
+                var urlId = resultSet.getLong("url_id");
+                listOfUrls.setUrlId(urlId);
+                lastChecks.put(urlId, listOfUrls);
             }
             return lastChecks;
         } catch (SQLException e) {
             LOGGER.error("Failed to get last checks for all URLs", e);
             throw e;
         }
-    }
-
-    private static UrlCheck mapRowToUrlCheck(ResultSet resultSet) throws SQLException {
-        UrlCheck check = new UrlCheck(
-                resultSet.getInt("status_code"),
-                resultSet.getString("title"),
-                resultSet.getString("h1"),
-                resultSet.getString("description"),
-                resultSet.getLong("url_id")
-        );
-
-        check.setId(resultSet.getLong("id"));
-
-        Timestamp timestamp = resultSet.getTimestamp("created_at");
-        if (timestamp != null) {
-            check.setCreatedAt(timestamp.toLocalDateTime());
-        }
-        return check;
     }
 }

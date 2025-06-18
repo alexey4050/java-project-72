@@ -46,15 +46,6 @@ public class UrlRepository extends BaseRepository {
         }
     }
 
-//    private static Url mapRowToUrl(ResultSet resultSet) throws SQLException {
-//        Url url = new Url(
-//                resultSet.getString("name")
-//        );
-//        url.setId(resultSet.getLong("id"));
-//        url.setCreatedAt(resultSet.getTimestamp("created_at").toLocalDateTime());
-//        return url;
-//    }
-
     public static Optional<Url> findById(Long id) throws SQLException {
         String sql = "SELECT * FROM urls WHERE id = ?";
         try (var conn = dataSource.getConnection();
