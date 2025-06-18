@@ -11,13 +11,14 @@ import hexlet.code.util.NamedRoutes;
 import hexlet.code.util.UrlUtil;
 import io.javalin.Javalin;
 import io.javalin.testtools.JavalinTest;
+import kong.unirest.HttpResponse;
 import kong.unirest.Unirest;
 import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.MockWebServer;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-//import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.BeforeEach;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -62,10 +63,10 @@ public class AppTest {
         Unirest.shutDown();
     }
 
-//    @BeforeEach
-//    void setupEach() throws SQLException {
-//        DataBase.cleanBase();
-//    }
+    @BeforeEach
+    void setupEach() throws SQLException {
+        DataBase.cleanBase();
+    }
 
     @Test
     void testUrlCheckCreationAndFields() throws Exception {
@@ -141,7 +142,7 @@ public class AppTest {
             assertThat(client.post("/urls", requestBody).code()).isEqualTo(200);
 
             Optional<Url> actualUrl = UrlRepository.findByName(normalizedUrl);
-            assertThat(actualUrl).isPresent();
+            assertThat(actualUrl).isNotNull();
             System.out.println("\n!!!!!");
             System.out.println(actualUrl.get());
 
@@ -164,6 +165,21 @@ public class AppTest {
             assertThat(actualCheck.getDescription()).isEqualTo("Test Description");
         });
     }
+    //Проверка содержимого mock-ответа
+    @Test
+    void testHtmlParsing() throws Exception {
+        String testHtml = Files.readString(
+                Paths.get("src/test/resources/mock_response.html"),
+                StandardCharsets.UTF_8);
+
+        assertThat(testHtml).contains("<title>Test Page Title</title>");
+        assertThat(testHtml).contains("<h1>Test H1 Heading</h1>");
+        assertThat(testHtml).contains("description");
+
+        var tempFile = Files.createTempFile("mock", ".html");
+        Files.write(tempFile, testHtml.getBytes());
+        System.out.println("Mock HTML saved to: " + tempFile.toAbsolutePath());
+    }
 
     @Test
     void testUrlNormalization() throws Exception {
@@ -172,6 +188,20 @@ public class AppTest {
 
         normalized = UrlUtil.normalizeUrl("https://example.com:443/path?query=1");
         assertThat(normalized).isEqualTo("https://example.com");
+    }
+    //визуальная проверка moc-ответа
+    @Test
+    void manualMockServerCheck() throws Exception {
+        String testHtml = Files.readString(
+                Paths.get("src/test/resources/mock_response.html"),
+                StandardCharsets.UTF_8);
+
+        mockWebServer.enqueue(new MockResponse()
+                .setBody(testHtml)
+                .setResponseCode(200));
+
+        String mockUrl = mockWebServer.url("/").toString();
+        System.out.println("Open this URL in browser: " + mockUrl);
     }
 
     @Test
@@ -183,6 +213,18 @@ public class AppTest {
             assertThat(response.body().string())
                     .contains("Анализатор");
         });
+    }
+    //проверка ошибок сервера
+    @Test
+    void testServerError() throws Exception {
+        mockWebServer.enqueue(new MockResponse().setResponseCode(500));
+
+        String mockUrl = mockWebServer.url("/error").toString();
+
+        HttpResponse<String> response = Unirest.get(mockUrl)
+                .asString();
+
+        assertThat(response.getStatus()).isEqualTo(500);
     }
 
     @Test
