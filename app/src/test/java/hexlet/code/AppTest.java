@@ -119,6 +119,52 @@ public class AppTest {
         });
     }
 
+    //Переписал проверочный тест который используется в action hexlet-check он у меня проходит
+    //При commit в gitHub ошибка
+    @Test
+    public void testStore() throws Exception {
+        Javalin app = App.getApp();
+
+        String testHtml = Files.readString(
+                Paths.get("src/test/resources/mock_response.html"),
+                StandardCharsets.UTF_8
+        );
+        mockWebServer.enqueue(new MockResponse()
+                .setBody(testHtml)
+                .setResponseCode(200));
+
+        String testUrl = mockWebServer.url("/").toString();
+        String normalizedUrl = UrlUtil.normalizeUrl(testUrl);
+
+        JavalinTest.test(app, (server, client) -> {
+            var requestBody = "url=" + testUrl;
+            assertThat(client.post("/urls", requestBody).code()).isEqualTo(200);
+
+            Optional<Url> actualUrl = UrlRepository.findByName(normalizedUrl);
+            assertThat(actualUrl).isPresent();
+            System.out.println("\n!!!!!");
+            System.out.println(actualUrl.get());
+
+            System.out.println("\n");
+            assertThat(actualUrl.get().getName()).isEqualTo(normalizedUrl);
+
+            var checkResponse = client.post("/urls/" + actualUrl.get().getId() + "/checks");
+            assertThat(checkResponse.code()).isEqualTo(200);
+
+            assertThat(client.get("/urls/" + actualUrl.get().getId()).code())
+                    .isEqualTo(200);
+
+            var checks = UrlCheckRepository.getChecksByUrlId(actualUrl.get().getId());
+            assertThat(checks).hasSize(1);
+
+            UrlCheck actualCheck = checks.get(0);
+            assertThat(actualCheck).isNotNull();
+            assertThat(actualCheck.getTitle()).isEqualTo("Test Page Title");
+            assertThat(actualCheck.getH1()).isEqualTo("Test H1 Heading");
+            assertThat(actualCheck.getDescription()).isEqualTo("Test Description");
+        });
+    }
+
     @Test
     void testUrlNormalization() throws Exception {
         String normalized = UrlUtil.normalizeUrl("http://example.com/path/");
