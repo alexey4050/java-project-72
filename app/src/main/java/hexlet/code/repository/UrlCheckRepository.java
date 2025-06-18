@@ -19,15 +19,15 @@ public class UrlCheckRepository extends BaseRepository {
 
     public static void save(UrlCheck urlCheck) throws SQLException {
         LOGGER.info("Saving UrlCheck: {}", urlCheck);
-        String sql = "INSERT INTO url_checks (status_code, title, h1,"
-                + " description, url_id, created_at) VALUES (?, ?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO url_checks (url_id, status_code, title,"
+                + " description, h1, created_at) VALUES (?, ?, ?, ?, ?, ?)";
         try (var conn = dataSource.getConnection();
              var stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
-            stmt.setInt(1, urlCheck.getStatusCode());
-            stmt.setString(2, urlCheck.getTitle());
-            stmt.setString(3, urlCheck.getH1());
+            stmt.setLong(1, urlCheck.getUrlId());
+            stmt.setInt(2, urlCheck.getStatusCode());
+            stmt.setString(3, urlCheck.getTitle());
             stmt.setString(4, urlCheck.getDescription());
-            stmt.setLong(5, urlCheck.getUrlId());
+            stmt.setString(5, urlCheck.getH1());
             var createdAt = LocalDateTime.now();
             stmt.setTimestamp(6, Timestamp.valueOf(createdAt));
             int affectedRows = stmt.executeUpdate();
