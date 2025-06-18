@@ -81,10 +81,9 @@ public class AppTest {
                     .setBody(testHtml)
                     .setResponseCode(200));
 
-            String testUrl = mockWebServer.url("/").toString();
-            String normalizedUrl = UrlUtil.normalizeUrl(testUrl);
+            String normalizedUrl = UrlUtil.normalizeUrl(mockUrl);
 
-            var createResponse = client.post("/urls", "url=" + testUrl);
+            var createResponse = client.post("/urls", "url=" + mockUrl);
             assertThat(createResponse.code()).isEqualTo(200);
 
             Optional<Url> savedUrl = UrlRepository.findByName(normalizedUrl);
@@ -134,11 +133,10 @@ public class AppTest {
                 .setBody(testHtml)
                 .setResponseCode(200));
 
-        String testUrl = mockWebServer.url("/").toString();
-        String normalizedUrl = UrlUtil.normalizeUrl(testUrl);
+        String normalizedUrl = UrlUtil.normalizeUrl(mockUrl);
 
         JavalinTest.test(app, (server, client) -> {
-            var requestBody = "url=" + testUrl;
+            var requestBody = "url=" + mockUrl;
             assertThat(client.post("/urls", requestBody).code()).isEqualTo(200);
 
             Optional<Url> actualUrl = UrlRepository.findByName(normalizedUrl);
@@ -200,7 +198,6 @@ public class AppTest {
                 .setBody(testHtml)
                 .setResponseCode(200));
 
-        String mockUrl = mockWebServer.url("/").toString();
         System.out.println("Open this URL in browser: " + mockUrl);
     }
 
@@ -218,8 +215,6 @@ public class AppTest {
     @Test
     void testServerError() throws Exception {
         mockWebServer.enqueue(new MockResponse().setResponseCode(500));
-
-        String mockUrl = mockWebServer.url("/error").toString();
 
         HttpResponse<String> response = Unirest.get(mockUrl)
                 .asString();
