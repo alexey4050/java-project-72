@@ -37,7 +37,7 @@ public class App {
     }
 
     public static void main(String[] args) {
-        Javalin app = null;
+        Javalin app;
         try {
             app = getApp();
             app.start(getPort());
