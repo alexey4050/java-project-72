@@ -17,7 +17,7 @@ import okhttp3.mockwebserver.MockWebServer;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.BeforeEach;
+//import org.junit.jupiter.api.BeforeEach;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -27,7 +27,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.LocalDateTime;
 import java.util.Optional;
-
 
 import static hexlet.code.repository.BaseRepository.dataSource;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -63,10 +62,10 @@ public class AppTest {
         Unirest.shutDown();
     }
 
-    @BeforeEach
-    void setupEach() throws SQLException {
-        DataBase.cleanBase();
-    }
+//    @BeforeEach
+//    void setupEach() throws SQLException {
+//        DataBase.cleanBase();
+//    }
 
     @Test
     void testUrlCheckCreationAndFields() throws Exception {
