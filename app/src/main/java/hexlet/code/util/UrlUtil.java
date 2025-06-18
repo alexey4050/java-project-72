@@ -16,7 +16,7 @@ public final class UrlUtil {
         }
 
         if (!urlString.startsWith("http://") && !urlString.startsWith("https://")) {
-            urlString = "http://" + urlString;
+            throw new MalformedURLException("URL должен начинаться с http:// или https://");
         }
 
         URI uri = new URI(urlString).parseServerAuthority();
