@@ -19,15 +19,15 @@ public final class UrlUtil {
             throw new MalformedURLException("URL должен начинаться с http:// или https://");
         }
 
-        URI uri = new URI(urlString).parseServerAuthority();
+        URI uri = new URI(urlString);
         URL url = uri.toURL();
 
         if (url.getHost() == null || url.getHost().isBlank()) {
             throw new MalformedURLException("Некорректный URL: отсутствует host");
         }
 
-        String protocol = url.getProtocol().toLowerCase();
-        String host = url.getHost().toLowerCase();
+        String protocol = url.getProtocol();
+        String host = url.getHost();
         int port = url.getPort();
 
         StringBuilder normalized = new StringBuilder();
