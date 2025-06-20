@@ -1,6 +1,5 @@
 package hexlet.code.controller;
 
-import hexlet.code.dto.BasePage;
 import hexlet.code.dto.UrlPage;
 import hexlet.code.dto.UrlsPage;
 import hexlet.code.model.Url;
@@ -37,7 +36,9 @@ public final class UrlsController {
         String urlString = ctx.formParam("url");
 
         if (urlString == null || urlString.isBlank()) {
-            setFlashAndRedirect(ctx, DANGER_TYPE, "URL не может быть пустым", NamedRoutes.rootPath());
+            ctx.sessionAttribute(FLASH_TYPE, DANGER_TYPE);
+            ctx.sessionAttribute(FLASH_MESSAGE, "URL не может быть пустым");
+            ctx.redirect(NamedRoutes.rootPath());
             return;
         }
 
@@ -46,8 +47,9 @@ public final class UrlsController {
             var existingUrl = UrlRepository.findByName(normalizedUrl);
 
             if (existingUrl.isPresent()) {
-                setFlashAndRedirect(ctx, INFO_TYPE, "Страница уже существует",
-                        NamedRoutes.urlPath(existingUrl.get().getId()));
+                ctx.sessionAttribute(FLASH_TYPE, INFO_TYPE);
+                ctx.sessionAttribute(FLASH_MESSAGE, "Страница уже существует");
+                ctx.redirect(NamedRoutes.urlPath(existingUrl.get().getId()));
                 return;
             }
 
@@ -58,15 +60,25 @@ public final class UrlsController {
                 createExampleCheck(url.getId());
             }
 
-            setFlashAndRedirect(ctx, SUCCESS_TYPE, "Страница успешно добавлена",
-                    NamedRoutes.urlsPath());
+            ctx.sessionAttribute(FLASH_TYPE, SUCCESS_TYPE);
+            ctx.sessionAttribute(FLASH_MESSAGE, "Страница успешно добавлена");
+            ctx.redirect(NamedRoutes.urlsPath());
 
         } catch (MalformedURLException | URISyntaxException e) {
-            handleError(ctx, "Некорректный URL", NamedRoutes.rootPath(), e);
+            LOGGER.error("Некорректный URL: {}", e.getMessage());
+            ctx.sessionAttribute(FLASH_TYPE, DANGER_TYPE);
+            ctx.sessionAttribute(FLASH_MESSAGE, "Некорректный URL");
+            ctx.redirect(NamedRoutes.rootPath());
         } catch (SQLException e) {
-            handleError(ctx, "Ошибка базы данных", NamedRoutes.rootPath(), e);
+            LOGGER.error("Ошибка базы данных: {}", e.getMessage());
+            ctx.sessionAttribute(FLASH_TYPE, DANGER_TYPE);
+            ctx.sessionAttribute(FLASH_MESSAGE, "Ошибка базы данных");
+            ctx.redirect(NamedRoutes.rootPath());
         } catch (Exception e) {
-            handleError(ctx, "Непредвиденная ошибка", NamedRoutes.rootPath(), e);
+            LOGGER.error("Непредвиденная ошибка: {}", e.getMessage());
+            ctx.sessionAttribute(FLASH_TYPE, DANGER_TYPE);
+            ctx.sessionAttribute(FLASH_MESSAGE, "Непредвиденная ошибка");
+            ctx.redirect(NamedRoutes.rootPath());
         }
     }
 
@@ -74,13 +86,20 @@ public final class UrlsController {
         try {
             var urls = UrlRepository.getEntities();
             var lastChecks = UrlCheckRepository.getLastChecksForAllUrls();
-
             var page = new UrlsPage(urls, lastChecks);
-            transferFlashAttributes(ctx, page);
+
+            String flashType = ctx.consumeSessionAttribute(FLASH_TYPE);
+            String flashMessage = ctx.consumeSessionAttribute(FLASH_MESSAGE);
+            if (flashType != null && flashMessage != null) {
+                page.setFlash(flashType, flashMessage);
+            }
 
             ctx.render("urls/index.jte", model("page", page));
         } catch (SQLException e) {
-            handleError(ctx, "Ошибка при загрузке списка сайтов", NamedRoutes.urlsPath(), e);
+            LOGGER.error("Ошибка при загрузке списка сайтов: {}", e.getMessage());
+            ctx.sessionAttribute(FLASH_TYPE, DANGER_TYPE);
+            ctx.sessionAttribute(FLASH_MESSAGE, "Ошибка при загрузке списка сайтов");
+            ctx.redirect(NamedRoutes.urlsPath());
         }
     }
 
@@ -92,13 +111,22 @@ public final class UrlsController {
 
             var checks = UrlCheckRepository.getChecksByUrlId(id);
             var page = new UrlPage(url, checks);
-            transferFlashAttributes(ctx, page);
+
+            String flashType = ctx.consumeSessionAttribute(FLASH_TYPE);
+            String flashMessage = ctx.consumeSessionAttribute(FLASH_MESSAGE);
+            if (flashType != null && flashMessage != null) {
+                page.setFlash(flashType, flashMessage);
+            }
 
             ctx.render("urls/show.jte", model("page", page));
         } catch (NumberFormatException e) {
+            LOGGER.warn("Некорректный ID страницы: {}", ctx.pathParam("id"));
             ctx.status(400).render("errors/400.jte");
         } catch (SQLException e) {
-            handleError(ctx, "Ошибка базы данных", NamedRoutes.urlsPath(), e);
+            LOGGER.error("Ошибка базы данных при просмотре страницы: {}", e.getMessage());
+            ctx.sessionAttribute(FLASH_TYPE, DANGER_TYPE);
+            ctx.sessionAttribute(FLASH_MESSAGE, "Ошибка базы данных");
+            ctx.redirect(NamedRoutes.urlsPath());
         }
     }
 
@@ -111,14 +139,6 @@ public final class UrlsController {
                 urlId
         );
         UrlCheckRepository.save(check);
-    }
-
-    public static void transferFlashAttributes(Context ctx, BasePage page) {
-        String flashType = ctx.consumeSessionAttribute(FLASH_TYPE);
-        String flashMessage = ctx.consumeSessionAttribute(FLASH_MESSAGE);
-        if (flashType != null && flashMessage != null) {
-            page.setFlash(flashType, flashMessage);
-        }
     }
 
     public static void setFlashAndRedirect(Context ctx, String type, String message, String path) {

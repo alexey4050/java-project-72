@@ -19,7 +19,7 @@ public class UrlCheckRepository extends BaseRepository {
     public static void save(UrlCheck urlCheck) throws SQLException {
         LOGGER.info("Saving UrlCheck: {}", urlCheck);
         String sql = "INSERT INTO url_checks ( status_code, title,"
-                + " description, h1, url_id, created_at) VALUES (?, ?, ?, ?, ?, ?)";
+                + " h1, description, url_id, created_at) VALUES (?, ?, ?, ?, ?, ?)";
         try (var conn = dataSource.getConnection();
              var stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             stmt.setInt(1, urlCheck.getStatusCode());

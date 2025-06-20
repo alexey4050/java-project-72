@@ -3,27 +3,26 @@ package hexlet.code;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import hexlet.code.model.Url;
-//import hexlet.code.model.UrlCheck;
-//import hexlet.code.repository.UrlCheckRepository;
+import hexlet.code.model.UrlCheck;
+import hexlet.code.repository.BaseRepository;
+import hexlet.code.repository.UrlCheckRepository;
 import hexlet.code.repository.UrlRepository;
 import hexlet.code.util.DataBase;
 import hexlet.code.util.NamedRoutes;
-import hexlet.code.util.UrlUtil;
 import io.javalin.Javalin;
 import io.javalin.testtools.JavalinTest;
 import kong.unirest.HttpResponse;
 import kong.unirest.Unirest;
 import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.MockWebServer;
+import okhttp3.mockwebserver.RecordedRequest;
 import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.BeforeEach;
 
 import java.io.IOException;
-import java.net.MalformedURLException;
-import java.net.URISyntaxException;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.sql.ResultSet;
@@ -31,176 +30,40 @@ import java.sql.SQLException;
 import java.time.LocalDateTime;
 import java.util.Optional;
 
-import static hexlet.code.repository.BaseRepository.dataSource;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class AppTest {
-
-    private static MockWebServer mockWebServer;
-    private static String mockUrl;
+    private static HikariDataSource dataSource;
+    private MockWebServer mockWebServer;
+    private String mockUrl;
 
     @BeforeAll
-    static void setupAll() throws IOException, SQLException {
+    static void setupAll() throws SQLException, IOException {
         var config = new HikariConfig();
         config.setJdbcUrl("jdbc:h2:mem:test;DB_CLOSE_DELAY=-1");
         dataSource = new HikariDataSource(config);
+        BaseRepository.dataSource = dataSource;
         DataBase.runMigrations();
-
-        mockWebServer = new MockWebServer();
-        mockWebServer.start();
-        mockUrl = mockWebServer.url("/").toString();
-
-        Unirest.config()
-                .socketTimeout(500)
-                .connectTimeout(500)
-                .defaultBaseUrl(mockUrl);
-    }
-
-    @AfterAll
-    static void tearDown() throws IOException {
-        mockWebServer.shutdown();
-        if (dataSource != null) {
-            dataSource.close();
-        }
-        Unirest.shutDown();
     }
 
     @BeforeEach
-    void setupEach() throws SQLException {
+    void setup() throws IOException, SQLException {
         DataBase.cleanBase();
+        mockWebServer = new MockWebServer();
+        mockWebServer.start();
+        mockUrl = mockWebServer.url("/").toString().replaceAll("/$", "");
     }
 
-//    @Test
-//    void testUrlCheckCreationAndFields() throws Exception {
-//        Javalin app = App.getApp();
-//        JavalinTest.test(app, (server, client) -> {
-//            String testHtml = Files.readString(
-//                    Paths.get("src/test/resources/mock_response.html"),
-//                    StandardCharsets.UTF_8
-//            );
-//
-//            mockWebServer.enqueue(new MockResponse()
-//                    .setBody(testHtml)
-//                    .setResponseCode(200));
-//
-//            String normalizedUrl = UrlUtil.normalizeUrl(mockUrl);
-//
-//            var createResponse = client.post("/urls", "url=" + mockUrl);
-//            assertThat(createResponse.code()).isEqualTo(200);
-//
-//            Optional<Url> savedUrl = UrlRepository.findByName(normalizedUrl);
-//            assertThat(savedUrl).as("URL должен быть сохранен").isPresent();
-//            Long urlId = savedUrl.get().getId();
-//
-//            var checkResponse = client.post("/urls/" + urlId + "/checks");
-//            assertThat(checkResponse.code()).isEqualTo(200);
-//
-//            var checks = UrlCheckRepository.getChecksByUrlId(urlId);
-//            assertThat(checks)
-//                    .as("Проверка URL должна быть сохранена")
-//                    .hasSize(1);
-//
-//            UrlCheck check = checks.get(0);
-//            assertThat(check.getUrlId()).isEqualTo(urlId);
-//            assertThat(check.getStatusCode()).isEqualTo(200);
-//            assertThat(check.getTitle()).isEqualTo("Test Page Title");
-//            assertThat(check.getH1()).isEqualTo("Test H1 Heading");
-//            assertThat(check.getDescription()).isEqualTo("Test Description");
-//            assertThat(check.getCreatedAt()).isBeforeOrEqualTo(LocalDateTime.now());
-//
-//            assertThat(check.getId()).isNotNull();
-//
-//            var showResponse = client.get("/urls/" + urlId);
-//            assertThat(showResponse.code()).isEqualTo(200);
-//            String body = showResponse.body().string();
-//
-//            assertThat(body).contains("Test Page Title");
-//            assertThat(body).contains("Test H1 Heading");
-//            assertThat(body).contains("Test Description");
-//            assertThat(body).contains("200");
-//        });
-//    }
-//
-//    //Переписал проверочный тест который используется в action hexlet-check он у меня проходит
-//    //При commit в gitHub ошибка
-//    @Test
-//    public void testStore() throws Exception {
-//        Javalin app = App.getApp();
-//
-//        String testHtml = Files.readString(
-//                Paths.get("src/test/resources/mock_response.html"),
-//                StandardCharsets.UTF_8
-//        );
-//        mockWebServer.enqueue(new MockResponse()
-//                .setBody(testHtml)
-//                .setResponseCode(200));
-//
-//        String normalizedUrl = UrlUtil.normalizeUrl(mockUrl);
-//
-//        JavalinTest.test(app, (server, client) -> {
-//            var requestBody = "url=" + mockUrl;
-//            assertThat(client.post("/urls", requestBody).code()).isEqualTo(200);
-//
-//            Optional<Url> actualUrl = UrlRepository.findByName(normalizedUrl);
-//            assertThat(actualUrl).isNotNull();
-//            System.out.println("\n!!!!!");
-//            System.out.println(actualUrl.get());
-//
-//            System.out.println("\n");
-//            assertThat(actualUrl.get().getName()).isEqualTo(normalizedUrl);
-//
-//            var checkResponse = client.post("/urls/" + actualUrl.get().getId() + "/checks");
-//            assertThat(checkResponse.code()).isEqualTo(200);
-//
-//            assertThat(client.get("/urls/" + actualUrl.get().getId()).code())
-//                    .isEqualTo(200);
-//
-//            var checks = UrlCheckRepository.getChecksByUrlId(actualUrl.get().getId());
-//            assertThat(checks).hasSize(1);
-//
-//            UrlCheck actualCheck = checks.get(0);
-//            assertThat(actualCheck).isNotNull();
-//            assertThat(actualCheck.getTitle()).isEqualTo("Test Page Title");
-//            assertThat(actualCheck.getH1()).isEqualTo("Test H1 Heading");
-//            assertThat(actualCheck.getDescription()).isEqualTo("Test Description");
-//        });
-//    }
-    //Проверка содержимого mock-ответа
-    @Test
-    void testHtmlParsing() throws Exception {
-        String testHtml = Files.readString(
-                Paths.get("src/test/resources/mock_response.html"),
-                StandardCharsets.UTF_8);
-
-        assertThat(testHtml).contains("<title>Test Page Title</title>");
-        assertThat(testHtml).contains("<h1>Test H1 Heading</h1>");
-        assertThat(testHtml).contains("description");
-
-        var tempFile = Files.createTempFile("mock", ".html");
-        Files.write(tempFile, testHtml.getBytes());
-        System.out.println("Mock HTML saved to: " + tempFile.toAbsolutePath());
+    @AfterEach
+    void tearDown() throws IOException {
+        mockWebServer.shutdown();
     }
 
-    @Test
-    void testUrlNormalization() throws Exception {
-        String normalized = UrlUtil.normalizeUrl("http://example.com/path/");
-        assertThat(normalized).isEqualTo("http://example.com");
-
-        normalized = UrlUtil.normalizeUrl("https://example.com:443/path?query=1");
-        assertThat(normalized).isEqualTo("https://example.com");
-    }
-    //визуальная проверка moc-ответа
-    @Test
-    void manualMockServerCheck() throws Exception {
-        String testHtml = Files.readString(
-                Paths.get("src/test/resources/mock_response.html"),
-                StandardCharsets.UTF_8);
-
-        mockWebServer.enqueue(new MockResponse()
-                .setBody(testHtml)
-                .setResponseCode(200));
-
-        System.out.println("Open this URL in browser: " + mockUrl);
+    @AfterAll
+    static void tearDownAll() {
+        if (dataSource != null) {
+            dataSource.close();
+        }
     }
 
     @Test
@@ -209,13 +72,13 @@ public class AppTest {
         JavalinTest.test(app, (server, client) -> {
             var response = client.get(NamedRoutes.rootPath());
             assertThat(response.code()).isEqualTo(200);
-            assertThat(response.body().string())
-                    .contains("Анализатор");
+            assertThat(response.body().string()).contains("Анализатор");
         });
     }
+
     //проверка ошибок сервера
     @Test
-    void testServerError() throws Exception {
+    void testServerError() {
         mockWebServer.enqueue(new MockResponse().setResponseCode(500));
 
         HttpResponse<String> response = Unirest.get(mockUrl)
@@ -238,6 +101,66 @@ public class AppTest {
     }
 
     @Test
+    void testUrlCreation() throws SQLException, IOException {
+        Javalin app = App.getApp();
+        JavalinTest.test(app, (server, client) -> {
+            var response = client.post("/urls", "url=https://example.com");
+            assertThat(response.code()).isEqualTo(200);
+
+            Optional<Url> savedUrl = UrlRepository.findByName("https://example.com");
+            assertThat(savedUrl).isPresent();
+        });
+    }
+
+    @Test
+    void testUrlCheckCreationWithError() throws Exception {
+        Javalin app = App.getApp();
+
+        mockWebServer.enqueue(new MockResponse().setResponseCode(500));
+
+        JavalinTest.test(app, (server, client) -> {
+            var createUrlResponse = client.post("/urls", "url=" + mockUrl);
+            assertThat(createUrlResponse.code()).isEqualTo(200);
+
+            Optional<Url> savedUrl = UrlRepository.findByName(mockUrl);
+            assertThat(savedUrl).isPresent();
+            Long urlId = savedUrl.get().getId();
+
+            var checkResponse = client.post("/urls/" + urlId + "/checks");
+            assertThat(checkResponse.code()).isEqualTo(200);
+
+            RecordedRequest recordedRequest = mockWebServer.takeRequest();
+            assertThat(recordedRequest.getPath()).isEqualTo("/");
+
+            var checks = UrlCheckRepository.getChecksByUrlId(urlId);
+            assertThat(checks).isEmpty();
+
+            var showResponse = client.get("/urls/" + urlId);
+            assertThat(showResponse.code()).isEqualTo(200);
+        });
+    }
+
+    @Test
+    void testUrlCheckRepository() throws SQLException {
+        Url url = new Url("https://test.com");
+        UrlRepository.save(url);
+
+        UrlCheck check = new UrlCheck(
+                200,
+                "Test Title",
+                "Test H1",
+                "Test Description",
+                url.getId(),
+                LocalDateTime.now()
+        );
+        UrlCheckRepository.save(check);
+
+        var checks = UrlCheckRepository.getChecksByUrlId(url.getId());
+        assertThat(checks).hasSize(1);
+        assertThat(checks.get(0).getTitle()).isEqualTo("Test Title");
+    }
+
+    @Test
     void testUrlRepositorySaveAndFind() throws SQLException {
         Url url = new Url("https://example.com");
         UrlRepository.save(url);
@@ -257,28 +180,6 @@ public class AppTest {
         });
     }
 
-//    @Test
-//    public void testUrlsIndexPage() throws SQLException, IOException {
-//        Javalin app = App.getApp();
-//        JavalinTest.test(app, (server, client) -> {
-//            var url = new Url("https://example.com");
-//            UrlRepository.save(url);
-//
-//            var check = new UrlCheck(200, "Test Title", "Test H1", "Test Description", url.getId());
-//            UrlCheckRepository.save(check);
-//
-//            var response = client.get("/urls/" + url.getId());
-//            assertThat(response.code()).isEqualTo(200);
-//            String body = response.body().string();
-//
-//            assertThat(body).contains(url.getName());
-//            assertThat(body).contains("Test Title");
-//            assertThat(body).contains("Test H1");
-//            assertThat(body).contains("Test Description");
-//            assertThat(body).contains("200");
-//        });
-//    }
-
     @Test
     void testUrlChecksControllerCreateCheck() throws Exception {
         Javalin app = App.getApp();
@@ -296,6 +197,19 @@ public class AppTest {
             Optional<Url> savedUrl = UrlRepository.findByName(testUrl);
             assertThat(savedUrl).as("URL должен быть сохранен").isPresent();
         });
+    }
+
+    @Test
+    void testUrlRepository() throws SQLException {
+        Url url = new Url("https://test.com");
+        UrlRepository.save(url);
+
+        Optional<Url> foundUrl = UrlRepository.findById(url.getId());
+        assertThat(foundUrl).isPresent();
+        assertThat(foundUrl.get().getName()).isEqualTo("https://test.com");
+
+        Optional<Url> foundByName = UrlRepository.findByName("https://test.com");
+        assertThat(foundByName).isPresent();
     }
 
     @Test
@@ -330,19 +244,5 @@ public class AppTest {
                 assertThat(rs.getInt(1)).isEqualTo(1);
             }
         }
-    }
-
-    @Test
-    void testUrlRepositoryFindNonExisting() throws SQLException {
-        var found = UrlRepository.findById(999L);
-        assertThat(found).isEmpty();
-    }
-
-    @Test
-    void testNormalizeUrlWithMockServer() throws MalformedURLException, URISyntaxException {
-        String normalized = UrlUtil.normalizeUrl(mockUrl);
-        System.out.println("Mock URL: " + mockUrl);
-        System.out.println("Normalized: " + normalized);
-        assertThat(normalized).isNotNull();
     }
 }

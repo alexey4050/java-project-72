@@ -19,6 +19,7 @@ import org.slf4j.Logger;
 
 import java.io.IOException;
 import java.sql.SQLException;
+import java.util.Objects;
 
 public class App {
     private static final Logger LOGGER = LoggerFactory.getLogger(App.class);
@@ -55,7 +56,7 @@ public class App {
         config.setJdbcUrl(System.getProperty("JDBC_DATABASE_URL", "jdbc:h2:mem:project;DB_CLOSE_DELAY=-1"));
         config.setMaximumPoolSize(10);
         BaseRepository.dataSource = new HikariDataSource(config);
-
+        Objects.requireNonNull(BaseRepository.dataSource, "DataSource must be initialized");
         DataBase.runMigrations();
 
 

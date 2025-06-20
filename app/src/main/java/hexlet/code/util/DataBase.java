@@ -21,7 +21,7 @@ public final class DataBase {
     public static void runMigrations() throws SQLException, IOException {
         String sql = readResourceFile(SCHEMA_FILE);
         try (Connection conn = BaseRepository.dataSource.getConnection();
-            var stmt = conn.createStatement()) {
+             var stmt = conn.createStatement()) {
             stmt.execute(sql);
         }
     }

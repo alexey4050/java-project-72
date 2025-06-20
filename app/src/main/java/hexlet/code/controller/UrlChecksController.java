@@ -10,12 +10,19 @@ import io.javalin.http.NotFoundResponse;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.sql.SQLException;
+import java.time.LocalDateTime;
 import java.util.Optional;
 
 public final class UrlChecksController {
+    private static final Logger LOGGER = LoggerFactory.getLogger(UrlChecksController.class);
+    public static final String FLASH_TYPE = "flashType";
+    public static final String FLASH_MESSAGE = "flashMessage";
+    public static final String DANGER_TYPE = "danger";
     private static final String SUCCESS_TYPE = "success";
     private static final String INFO_TYPE = "info";
 
@@ -38,8 +45,9 @@ public final class UrlChecksController {
 
             if (UrlsController.EXAMPLE_URL.equals(url.getName())) {
                 UrlsController.createExampleCheck(urlId);
-                UrlsController.setFlashAndRedirect(ctx, INFO_TYPE,
-                        "Данные example.com добавлены автоматически", NamedRoutes.urlPath(urlId));
+                ctx.sessionAttribute(FLASH_TYPE, INFO_TYPE);
+                ctx.sessionAttribute(FLASH_MESSAGE, "Данные example.com добавлены автоматически");
+                ctx.redirect(NamedRoutes.urlPath(urlId));
                 return;
             }
 
@@ -49,21 +57,36 @@ public final class UrlChecksController {
                     doc.title(),
                     Optional.ofNullable(doc.selectFirst("h1")).map(Element::text).orElse(null),
                     Optional.ofNullable(doc.selectFirst("meta[name=description]"))
-                            .map(el -> el.attr("content").trim()).orElse(null),
-                    url.getId()
+                            .map(el -> el.attr("content")).orElse(null),
+                    url.getId(),
+                    LocalDateTime.now()
             );
             UrlCheckRepository.save(check);
 
+            ctx.sessionAttribute(FLASH_TYPE, SUCCESS_TYPE);
+            ctx.sessionAttribute(FLASH_MESSAGE, "Страница успешно проверена");
+            ctx.redirect(NamedRoutes.urlPath(urlId));
+
+        } catch (NumberFormatException e) {
+            ctx.sessionAttribute(FLASH_TYPE, DANGER_TYPE);
+            ctx.sessionAttribute(FLASH_MESSAGE, "Некорректный ID страницы");
+            ctx.redirect(NamedRoutes.urlPath(urlId));
         } catch (SQLException e) {
-            UrlsController.handleError(ctx, "Ошибка базы данных", NamedRoutes.urlsPath(), e);
+            LOGGER.error("Ошибка базы данных: {}", e.getMessage());
+            ctx.sessionAttribute(FLASH_TYPE, DANGER_TYPE);
+            ctx.sessionAttribute(FLASH_MESSAGE, "Ошибка базы данных");
+            ctx.redirect(NamedRoutes.urlsPath());
         } catch (IOException e) {
-            UrlsController.handleError(ctx, "Ошибка при проверке URL",
-                    NamedRoutes.urlPath(urlId.toString()), e);
+            LOGGER.error("Ошибка при проверке URL: {}", e.getMessage());
+            ctx.sessionAttribute(FLASH_TYPE, DANGER_TYPE);
+            ctx.sessionAttribute(FLASH_MESSAGE, "Не удалось проверить страницу");
+            ctx.redirect(NamedRoutes.urlPath(urlId));
         } catch (Exception e) {
-            UrlsController.handleError(ctx, "Непредвиденная ошибка", NamedRoutes.urlsPath(), e);
+            LOGGER.error("Непредвиденная ошибка: {}", e.getMessage());
+            ctx.sessionAttribute(FLASH_TYPE, DANGER_TYPE);
+            ctx.sessionAttribute(FLASH_MESSAGE, "Непредвиденная ошибка");
+            ctx.redirect(NamedRoutes.urlsPath());
         }
-        UrlsController.setFlashAndRedirect(ctx, SUCCESS_TYPE,
-                "Страница успешно проверена", NamedRoutes.urlPath(urlId));
     }
 }
 
