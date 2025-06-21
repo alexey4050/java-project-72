@@ -35,9 +35,6 @@ dependencies {
     implementation("com.h2database:h2:2.3.232")
     implementation("org.postgresql:postgresql:42.7.3")
 
-    compileOnly("org.projectlombok:lombok:1.18.28")
-    annotationProcessor("org.projectlombok:lombok:1.18.28")
-
     implementation("gg.jte:jte:3.2.1")
 
     implementation("com.konghq:unirest-java:3.14.5")
