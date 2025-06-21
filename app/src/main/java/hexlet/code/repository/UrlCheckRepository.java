@@ -51,15 +51,16 @@ public class UrlCheckRepository extends BaseRepository {
             stmt.setLong(1, urlId);
             var resultSet = stmt.executeQuery();
             while (resultSet.next()) {
-                var id = resultSet.getLong("id");
-                var statusCode = resultSet.getInt("status_code");
-                var title = resultSet.getString("title");
-                var h1 = resultSet.getString("h1");
-                var description = resultSet.getString("description");
-                var createAt = resultSet.getTimestamp("created_at").toLocalDateTime();
-                var dataToSave = new UrlCheck(statusCode, title, h1, description, urlId, createAt);
-                dataToSave.setId(id);
-                checks.add(dataToSave);
+                UrlCheck check = new UrlCheck();
+                check.setId(resultSet.getLong("id"));
+                check.setStatusCode(resultSet.getInt("status_code"));
+                check.setTitle(resultSet.getString("title"));
+                check.setH1(resultSet.getString("h1"));
+                check.setDescription(resultSet.getString("description"));
+                check.setUrlId(urlId);
+                check.setCreatedAt(resultSet.getTimestamp("created_at").toLocalDateTime());
+
+                checks.add(check);
             }
             return checks;
         }

@@ -36,16 +36,12 @@ public final class UrlsController {
         String urlString = ctx.formParam("url");
 
         if (urlString == null || urlString.isBlank()) {
-            ctx.sessionAttribute(FLASH_TYPE, DANGER_TYPE);
-            ctx.sessionAttribute(FLASH_MESSAGE, "URL не может быть пустым");
-            ctx.redirect(NamedRoutes.rootPath());
-            return;
+            throw new IllegalArgumentException("URL не может быть пустым");
         }
 
         try {
             String normalizedUrl = UrlUtil.normalizeUrl(urlString);
             var existingUrl = UrlRepository.findByName(normalizedUrl);
-
             if (existingUrl.isPresent()) {
                 ctx.sessionAttribute(FLASH_TYPE, INFO_TYPE);
                 ctx.sessionAttribute(FLASH_MESSAGE, "Страница уже существует");
@@ -60,26 +56,22 @@ public final class UrlsController {
                 createExampleCheck(url.getId());
             }
 
-            ctx.sessionAttribute(FLASH_TYPE, SUCCESS_TYPE);
-            ctx.sessionAttribute(FLASH_MESSAGE, "Страница успешно добавлена");
-            ctx.redirect(NamedRoutes.urlsPath());
-
         } catch (MalformedURLException | URISyntaxException e) {
             LOGGER.error("Некорректный URL: {}", e.getMessage());
             ctx.sessionAttribute(FLASH_TYPE, DANGER_TYPE);
             ctx.sessionAttribute(FLASH_MESSAGE, "Некорректный URL");
-            ctx.redirect(NamedRoutes.rootPath());
         } catch (SQLException e) {
             LOGGER.error("Ошибка базы данных: {}", e.getMessage());
             ctx.sessionAttribute(FLASH_TYPE, DANGER_TYPE);
             ctx.sessionAttribute(FLASH_MESSAGE, "Ошибка базы данных");
-            ctx.redirect(NamedRoutes.rootPath());
         } catch (Exception e) {
             LOGGER.error("Непредвиденная ошибка: {}", e.getMessage());
             ctx.sessionAttribute(FLASH_TYPE, DANGER_TYPE);
             ctx.sessionAttribute(FLASH_MESSAGE, "Непредвиденная ошибка");
-            ctx.redirect(NamedRoutes.rootPath());
         }
+        ctx.sessionAttribute(FLASH_TYPE, SUCCESS_TYPE);
+        ctx.sessionAttribute(FLASH_MESSAGE, "Страница успешно добавлена");
+        ctx.redirect(NamedRoutes.urlsPath());
     }
 
     public static void index(Context ctx) {
@@ -139,16 +131,5 @@ public final class UrlsController {
                 urlId
         );
         UrlCheckRepository.save(check);
-    }
-
-    public static void setFlashAndRedirect(Context ctx, String type, String message, String path) {
-        ctx.sessionAttribute(FLASH_TYPE, type);
-        ctx.sessionAttribute(FLASH_MESSAGE, message);
-        ctx.redirect(path);
-    }
-
-    public static void handleError(Context ctx, String message, String redirectPath, Exception e) {
-        LOGGER.error(message, e);
-        setFlashAndRedirect(ctx, DANGER_TYPE, message + ": " + e.getMessage(), redirectPath);
     }
 }

@@ -239,8 +239,7 @@ public class AppTest {
                 "Test Title",
                 "Test H1",
                 "Test Description",
-                url.getId(),
-                LocalDateTime.now()
+                url.getId()
         );
         UrlCheckRepository.save(check);
 
