@@ -37,7 +37,7 @@ public final class App {
     }
 
     private static String getJdbcUrl() {
-        return System.getProperty("JDBC_DATABASE_URL", "jdbc:h2:mem:project");
+        return System.getenv().getOrDefault("JDBC_DATABASE_URL", "jdbc:h2:mem:project");
     }
 
     private static int getPort() {
