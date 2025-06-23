@@ -29,8 +29,12 @@ public final class App {
         var config = new HikariConfig();
         config.setJdbcUrl(getJdbcUrl());
         dataSource = new HikariDataSource(config);
+        var sql = DataBase.readResourceFile("schema.sql");
+        try (var connection = dataSource.getConnection();
+             var statement = connection.createStatement()) {
+            statement.execute(sql);
+        }
         BaseRepository.dataSource = dataSource;
-        DataBase.runMigrations();
         LOGGER.info("DataSource initialized");
     }
 
