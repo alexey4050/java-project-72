@@ -23,7 +23,6 @@ public final class UrlUtil {
             throw new MalformedURLException("Некорректный URL: отсутствует host");
         }
 
-        // Форматируем нормализованный URL
         String normalizedUrl = String.format(
                 "%s://%s%s",
                 parsedUrl.getProtocol(),

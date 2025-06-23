@@ -34,7 +34,9 @@ public final class UrlsController {
 
     public static void create(Context ctx) throws SQLException {
         String urlString = ctx.formParam("url");
-
+        System.out.println(" -------------- ");
+        System.out.println(" -------------!!! URL IN = " + urlString + " ----------------");
+        System.out.println(" ----------- ");
         if (urlString == null || urlString.isBlank()) {
             ctx.sessionAttribute(FLASH_TYPE, DANGER_TYPE);
             ctx.sessionAttribute(FLASH_MESSAGE, "URL не может быть пустым");
