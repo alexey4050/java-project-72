@@ -32,12 +32,4 @@ public final class DataBase {
             return reader.lines().collect(Collectors.joining("\n"));
         }
     }
-
-    public static void cleanBase() throws SQLException {
-        try (var conn = BaseRepository.dataSource.getConnection();
-             var stmt = conn.createStatement()) {
-            stmt.execute("DELETE FROM url_checks");
-            stmt.execute("DELETE FROM urls");
-        }
-    }
 }

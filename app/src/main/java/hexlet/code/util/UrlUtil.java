@@ -34,7 +34,6 @@ public final class UrlUtil {
                 || (protocol.equals("https") && port == 443))) {
             normalized.append(":").append(port);
         }
-
         return normalized.toString();
     }
 }
