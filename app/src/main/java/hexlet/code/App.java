@@ -20,7 +20,7 @@ import org.slf4j.Logger;
 import java.io.IOException;
 import java.sql.SQLException;
 
-public class App {
+public final class App {
     private static final Logger LOGGER = LoggerFactory.getLogger(App.class);
     private static final String FLASH_TYPE = "flashType";
     private static final String FLASH_MESSAGE = "flashMessage";
@@ -29,8 +29,7 @@ public class App {
     public static void initDataSource() throws SQLException, IOException {
         if (dataSource == null || dataSource.isClosed()) {
             var config = new HikariConfig();
-            config.setJdbcUrl(System.getProperty("JDBC_DATABASE_URL", "jdbc:h2:mem:project;DB_CLOSE_DELAY=-1"));
-            config.setMaximumPoolSize(10);
+            config.setJdbcUrl(getJdbcUrl());
             dataSource = new HikariDataSource(config);
             BaseRepository.dataSource = dataSource;
             DataBase.runMigrations();
@@ -45,18 +44,23 @@ public class App {
         }
     }
 
+    private static String getJdbcUrl() {
+        return System.getProperty("JDBC_DATABASE_URL", "jdbc:h2:mem:project");
+    }
+
     private static int getPort() {
         String port = System.getenv().getOrDefault("PORT", "7070");
         LOGGER.debug("Using port: {}", port);
         return Integer.parseInt(port);
     }
+
     private static TemplateEngine createTemplateEngine() {
         ResourceCodeResolver codeResolver = new ResourceCodeResolver("templates");
         return TemplateEngine.create(codeResolver, ContentType.Html);
     }
 
     public static Javalin getApp() throws SQLException, IOException {
-        initDataSource(); // Гарантируем инициализацию базы данных
+        initDataSource();
 
         var app = Javalin.create(config -> {
             config.bundledPlugins.enableDevLogging();
@@ -68,7 +72,6 @@ public class App {
             ctx.attribute(FLASH_TYPE, ctx.sessionAttribute(FLASH_TYPE));
         });
 
-        // Регистрация маршрутов
         app.get(NamedRoutes.rootPath(), RootController::index);
         app.get(NamedRoutes.urlsPath(), UrlsController::index);
         app.post(NamedRoutes.urlsPath(), UrlsController::create);
@@ -78,22 +81,9 @@ public class App {
         return app;
     }
 
-    public static void main(String[] args) {
-        try {
-            Javalin app = getApp();
-            app.start(getPort());
-            LOGGER.info("Application started successfully");
-
-            // Добавляем shutdown hook для корректного закрытия
-            Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-                app.stop();
-                closeDataSource();
-            }));
-        } catch (Exception e) {
-            LOGGER.error("Failed to start application", e);
-            closeDataSource();
-            System.exit(1);
-        }
+    public static void main(String[] args) throws SQLException, IOException {
+        Javalin app = getApp();
+        app.start(getPort());
     }
 //    private static final Logger LOGGER = LoggerFactory.getLogger(App.class);
 //    private static final String FLASH_TYPE = "flashType";
