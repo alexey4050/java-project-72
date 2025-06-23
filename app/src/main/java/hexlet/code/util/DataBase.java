@@ -26,7 +26,7 @@ public final class DataBase {
         }
     }
 
-    public static String readResourceFile(String fileName) throws IOException {
+    private static String readResourceFile(String fileName) throws IOException {
         try (InputStream inputStream = DataBase.class.getClassLoader().getResourceAsStream(fileName);
              BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8))) {
             return reader.lines().collect(Collectors.joining("\n"));

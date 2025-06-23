@@ -14,7 +14,10 @@ import hexlet.code.util.NamedRoutes;
 import io.javalin.Javalin;
 import io.javalin.rendering.template.JavalinJte;
 import org.slf4j.LoggerFactory;
+
 import org.slf4j.Logger;
+import org.slf4j.event.Level;
+
 
 import java.io.IOException;
 import java.sql.SQLException;
@@ -26,16 +29,16 @@ public final class App {
     private static HikariDataSource dataSource;
 
     public static void initDataSource() throws SQLException, IOException {
-        var config = new HikariConfig();
-        config.setJdbcUrl(getJdbcUrl());
-        dataSource = new HikariDataSource(config);
-        var sql = DataBase.readResourceFile("schema.sql");
-        try (var connection = dataSource.getConnection();
-             var statement = connection.createStatement()) {
-            statement.execute(sql);
+        if (BaseRepository.dataSource == null || BaseRepository.dataSource.isClosed()) {
+            var config = new HikariConfig();
+            config.setJdbcUrl(getJdbcUrl());
+            dataSource = new HikariDataSource(config);
+            BaseRepository.dataSource = dataSource;
+            DataBase.runMigrations();
+            LOGGER.info("DataSource initialized");
+        } else {
+            dataSource = BaseRepository.dataSource;
         }
-        BaseRepository.dataSource = dataSource;
-        LOGGER.info("DataSource initialized");
     }
 
     private static String getJdbcUrl() {
@@ -76,6 +79,8 @@ public final class App {
     }
 
     public static void main(String[] args) throws SQLException, IOException {
+        Logger rootLogger =  LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME);
+        rootLogger.atLevel(Level.DEBUG);
         Javalin app = getApp();
         app.start(getPort());
     }
