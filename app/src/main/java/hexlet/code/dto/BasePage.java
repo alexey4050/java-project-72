@@ -10,7 +10,7 @@ public class BasePage {
     private String flashType;
     private String flashMessage;
 
-    public void setFlash(String type, String message) {
+    public final void setFlash(String type, String message) {
         this.flashType = type;
         this.flashMessage = message;
     }
