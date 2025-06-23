@@ -71,7 +71,6 @@ public class UrlRepository extends BaseRepository {
             while (resultSet.next()) {
                 var id = resultSet.getLong("id");
                 var name = resultSet.getString("name");
-                var createdAt = resultSet.getTimestamp("created_at").toLocalDateTime();
                 var url = new Url(name);
                 url.setId(id);
                 url.setName(name);
