@@ -16,6 +16,8 @@ import io.javalin.rendering.template.JavalinJte;
 import org.slf4j.LoggerFactory;
 
 import org.slf4j.Logger;
+import org.slf4j.event.Level;
+
 
 import java.io.IOException;
 import java.sql.SQLException;
@@ -27,21 +29,12 @@ public final class App {
     private static HikariDataSource dataSource;
 
     public static void initDataSource() throws SQLException, IOException {
-        if (dataSource == null || dataSource.isClosed()) {
             var config = new HikariConfig();
             config.setJdbcUrl(getJdbcUrl());
             dataSource = new HikariDataSource(config);
             BaseRepository.dataSource = dataSource;
             DataBase.runMigrations();
             LOGGER.info("DataSource initialized");
-        }
-    }
-
-    public static void closeDataSource() {
-        if (dataSource != null && !dataSource.isClosed()) {
-            dataSource.close();
-            LOGGER.info("DataSource closed");
-        }
     }
 
     private static String getJdbcUrl() {
@@ -82,64 +75,9 @@ public final class App {
     }
 
     public static void main(String[] args) throws SQLException, IOException {
+        Logger rootLogger =  LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME);
+        rootLogger.atLevel(Level.DEBUG);
         Javalin app = getApp();
         app.start(getPort());
     }
-//    private static final Logger LOGGER = LoggerFactory.getLogger(App.class);
-//    private static final String FLASH_TYPE = "flashType";
-//    private static final String FLASH_MESSAGE = "flashMessage";
-//    static HikariDataSource dataSource;
-//
-//    private static int getPort() {
-//        String port = System.getenv().getOrDefault("PORT", "7070");
-//        LOGGER.debug("Using port: {}", port);
-//        return Integer.valueOf(port);
-//    }
-//
-//    private static TemplateEngine createTemplateEngine() {
-//        ResourceCodeResolver codeResolver = new ResourceCodeResolver("templates");
-//        return TemplateEngine.create(codeResolver, ContentType.Html);
-//    }
-//
-//    public static void main(String[] args) {
-//        Javalin app;
-//        try {
-//            app = getApp();
-//            app.start(getPort());
-//            LOGGER.info("Application configured successfully");
-//        } catch (Exception e) {
-//            LOGGER.error("Failed to start application: {}", e.getMessage(), e);
-//            System.exit(1);
-//        }
-//    }
-//
-//    public static Javalin getApp() throws SQLException, IOException {
-//        LOGGER.info("Starting application configuration...");
-//
-//        var config = new HikariConfig();
-//        config.setJdbcUrl(System.getProperty("JDBC_DATABASE_URL", "jdbc:h2:mem:project;DB_CLOSE_DELAY=-1"));
-//        dataSource = new HikariDataSource(config);
-//        BaseRepository.dataSource = dataSource;
-//        DataBase.runMigrations();
-//
-//
-//        var app = Javalin.create(conf -> {
-//            conf.bundledPlugins.enableDevLogging();
-//            conf.fileRenderer(new JavalinJte(createTemplateEngine()));
-//        });
-//
-//        app.before(ctx -> {
-//            ctx.attribute(FLASH_MESSAGE, ctx.sessionAttribute(FLASH_MESSAGE));
-//            ctx.attribute(FLASH_TYPE, ctx.sessionAttribute(FLASH_TYPE));
-//        });
-//
-//        app.get(NamedRoutes.rootPath(), RootController::index);
-//        app.get(NamedRoutes.urlsPath(), UrlsController::index);
-//        app.post(NamedRoutes.urlsPath(), UrlsController::create);
-//        app.get(NamedRoutes.urlPath("{id}"), UrlsController::show);
-//        app.post(NamedRoutes.urlChecksPath("{id}"), UrlChecksController::create);
-//
-//        return app;
-//
-//    }
 }
