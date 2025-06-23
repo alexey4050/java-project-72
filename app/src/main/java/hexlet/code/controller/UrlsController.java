@@ -33,28 +33,30 @@ public final class UrlsController {
     }
 
     public static void create(Context ctx) throws SQLException {
+        LOGGER.info(">>> Starting URL creation process");
         String urlString = ctx.formParam("url");
-        System.out.println(" -------------- ");
-        System.out.println(" -------------!!! URL IN = " + urlString + " ----------------");
-        System.out.println(" ----------- ");
+        LOGGER.debug("Initial URL input: '{}'", urlString);
+
         if (urlString == null || urlString.isBlank()) {
+            LOGGER.warn("!!! Empty URL provided - redirecting");
             ctx.sessionAttribute(FLASH_TYPE, DANGER_TYPE);
             ctx.sessionAttribute(FLASH_MESSAGE, "URL не может быть пустым");
             ctx.redirect(NamedRoutes.urlsPath());
             return;
         }
-
         String normalizedUrl;
+        LOGGER.debug("Normalizing URL: '{}'", urlString);
         try {
             normalizedUrl = UrlUtil.normalizeUrl(urlString);
         } catch (MalformedURLException | URISyntaxException e) {
-            LOGGER.error("Некорректный URL: {}", e.getMessage());
+            LOGGER.error("!!! URL normalization failed for '{}': {}", urlString, e.getMessage());
             ctx.sessionAttribute(FLASH_TYPE, DANGER_TYPE);
             ctx.sessionAttribute(FLASH_MESSAGE, "Некорректный URL");
             ctx.redirect(NamedRoutes.urlsPath());
             return;
         }
 
+        LOGGER.debug("Checking if URL exists: '{}'", normalizedUrl);
         var existingUrl = UrlRepository.findByName(normalizedUrl);
 
         if (existingUrl.isPresent()) {
@@ -64,13 +66,13 @@ public final class UrlsController {
             return;
         }
 
+        LOGGER.debug("Creating new URL entity");
         Url url = new Url(normalizedUrl);
-        System.out.println(" -------------- ");
-        System.out.println(" ------------- " + url.getName() + " ----------------");
-        System.out.println(" ----------- ");
         UrlRepository.save(url);
+        LOGGER.info("<<< Successfully created URL, ID: {}", url.getId());
 
         if (EXAMPLE_URL.equals(normalizedUrl)) {
+            LOGGER.info("Creating example check for URL ID: {}", url.getId());
             createExampleCheck(url.getId());
         }
 
