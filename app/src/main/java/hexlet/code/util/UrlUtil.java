@@ -13,27 +13,24 @@ public final class UrlUtil {
     public static String normalizeUrl(String urlString) throws URISyntaxException, MalformedURLException {
 
         if (!urlString.startsWith("http://") && !urlString.startsWith("https://")) {
-            throw new MalformedURLException("URL должен начинаться с http:// или https://");
+            urlString = "http://" + urlString;
         }
 
         URI uri = new URI(urlString);
-        URL url = uri.toURL();
+        URL parsedUrl = uri.toURL();
 
-        if (url.getHost() == null || url.getHost().isBlank()) {
+        if (parsedUrl.getHost() == null || parsedUrl.getHost().isBlank()) {
             throw new MalformedURLException("Некорректный URL: отсутствует host");
         }
 
-        String protocol = url.getProtocol();
-        String host = url.getHost();
-        int port = url.getPort();
+        // Форматируем нормализованный URL
+        String normalizedUrl = String.format(
+                "%s://%s%s",
+                parsedUrl.getProtocol(),
+                parsedUrl.getHost(),
+                parsedUrl.getPort() == -1 ? "" : ":" + parsedUrl.getPort()
+        ).toLowerCase();
 
-        StringBuilder normalized = new StringBuilder();
-        normalized.append(protocol).append("://").append(host);
-
-        if (port != -1 && !((protocol.equals("http") && port == 80)
-                || (protocol.equals("https") && port == 443))) {
-            normalized.append(":").append(port);
-        }
-        return normalized.toString();
+        return normalizedUrl;
     }
 }

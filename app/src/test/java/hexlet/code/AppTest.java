@@ -78,6 +78,7 @@ public class AppTest {
             String fixture = "https://en.hexlet.io";
             String urlForAdding = "url=" + fixture;
             var response = client.post(NamedRoutes.urlsPath(), urlForAdding);
+            assertThat(response).isNotNull();
             assertThat(response.code()).isEqualTo(200);
             assertThat(response.body().string())
                     .contains(fixture);

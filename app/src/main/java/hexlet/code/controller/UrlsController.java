@@ -63,6 +63,9 @@ public final class UrlsController {
         }
 
         Url url = new Url(normalizedUrl);
+        System.out.println(" -------------- ");
+        System.out.println(" ------------- " + url.getName() + " ----------------");
+        System.out.println(" ----------- ");
         UrlRepository.save(url);
 
         if (EXAMPLE_URL.equals(normalizedUrl)) {
