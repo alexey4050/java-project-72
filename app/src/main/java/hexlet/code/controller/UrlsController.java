@@ -32,43 +32,43 @@ public final class UrlsController {
         throw new UnsupportedOperationException("Это служебный класс, создание экземпляров запрещено");
     }
 
-    public static void create(Context ctx) {
+    public static void create(Context ctx) throws SQLException {
         String urlString = ctx.formParam("url");
 
         if (urlString == null || urlString.isBlank()) {
-            throw new IllegalArgumentException("URL не может быть пустым");
+            ctx.sessionAttribute(FLASH_TYPE, DANGER_TYPE);
+            ctx.sessionAttribute(FLASH_MESSAGE, "URL не может быть пустым");
+            ctx.redirect(NamedRoutes.urlsPath());
+            return;
         }
 
+        String normalizedUrl;
         try {
-            String normalizedUrl = UrlUtil.normalizeUrl(urlString);
-            var existingUrl = UrlRepository.findByName(normalizedUrl);
-            if (existingUrl.isPresent()) {
-                ctx.sessionAttribute(FLASH_TYPE, INFO_TYPE);
-                ctx.sessionAttribute(FLASH_MESSAGE, "Страница уже существует");
-                ctx.redirect(NamedRoutes.urlPath(existingUrl.get().getId()));
-                return;
-            }
-
-            Url url = new Url(normalizedUrl);
-            UrlRepository.save(url);
-
-            if (EXAMPLE_URL.equals(normalizedUrl)) {
-                createExampleCheck(url.getId());
-            }
-
+            normalizedUrl = UrlUtil.normalizeUrl(urlString);
         } catch (MalformedURLException | URISyntaxException e) {
             LOGGER.error("Некорректный URL: {}", e.getMessage());
             ctx.sessionAttribute(FLASH_TYPE, DANGER_TYPE);
             ctx.sessionAttribute(FLASH_MESSAGE, "Некорректный URL");
-        } catch (SQLException e) {
-            LOGGER.error("Ошибка базы данных: {}", e.getMessage());
-            ctx.sessionAttribute(FLASH_TYPE, DANGER_TYPE);
-            ctx.sessionAttribute(FLASH_MESSAGE, "Ошибка базы данных");
-        } catch (Exception e) {
-            LOGGER.error("Непредвиденная ошибка: {}", e.getMessage());
-            ctx.sessionAttribute(FLASH_TYPE, DANGER_TYPE);
-            ctx.sessionAttribute(FLASH_MESSAGE, "Непредвиденная ошибка");
+            ctx.redirect(NamedRoutes.urlsPath());
+            return;
         }
+
+        var existingUrl = UrlRepository.findByName(normalizedUrl);
+
+        if (existingUrl.isPresent()) {
+            ctx.sessionAttribute(FLASH_TYPE, INFO_TYPE);
+            ctx.sessionAttribute(FLASH_MESSAGE, "Страница уже существует");
+            ctx.redirect(NamedRoutes.urlPath(existingUrl.get().getId()));
+            return;
+        }
+
+        Url url = new Url(normalizedUrl);
+        UrlRepository.save(url);
+
+        if (EXAMPLE_URL.equals(normalizedUrl)) {
+            createExampleCheck(url.getId());
+        }
+
         ctx.sessionAttribute(FLASH_TYPE, SUCCESS_TYPE);
         ctx.sessionAttribute(FLASH_MESSAGE, "Страница успешно добавлена");
         ctx.redirect(NamedRoutes.urlsPath());

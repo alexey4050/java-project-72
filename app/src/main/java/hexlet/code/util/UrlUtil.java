@@ -11,9 +11,6 @@ public final class UrlUtil {
     }
 
     public static String normalizeUrl(String urlString) throws URISyntaxException, MalformedURLException {
-        if (urlString == null || urlString.isBlank()) {
-            throw new MalformedURLException("URL не может быть пустым");
-        }
 
         if (!urlString.startsWith("http://") && !urlString.startsWith("https://")) {
             throw new MalformedURLException("URL должен начинаться с http:// или https://");

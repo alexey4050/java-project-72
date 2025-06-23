@@ -55,6 +55,9 @@ public final class UrlChecksController {
             );
             UrlCheckRepository.save(check);
 
+            ctx.sessionAttribute(FLASH_TYPE, SUCCESS_TYPE);
+            ctx.sessionAttribute(FLASH_MESSAGE, "Страница успешно проверена");
+
         } catch (NumberFormatException e) {
             ctx.sessionAttribute(FLASH_TYPE, DANGER_TYPE);
             ctx.sessionAttribute(FLASH_MESSAGE, "Некорректный ID страницы");
@@ -71,8 +74,6 @@ public final class UrlChecksController {
             ctx.sessionAttribute(FLASH_TYPE, DANGER_TYPE);
             ctx.sessionAttribute(FLASH_MESSAGE, "Непредвиденная ошибка");
         }
-        ctx.sessionAttribute(FLASH_TYPE, SUCCESS_TYPE);
-        ctx.sessionAttribute(FLASH_MESSAGE, "Страница успешно проверена");
         ctx.redirect(NamedRoutes.urlPath(urlId));
     }
 }
