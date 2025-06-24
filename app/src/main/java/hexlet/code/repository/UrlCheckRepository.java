@@ -13,7 +13,7 @@ import java.util.ArrayList;
 import java.util.Map;
 import java.util.HashMap;
 
-public class UrlCheckRepository extends BaseRepository {
+public final class UrlCheckRepository extends BaseRepository {
     private static final Logger LOGGER = LoggerFactory.getLogger(UrlCheckRepository.class);
 
     public static void save(UrlCheck urlCheck) throws SQLException {

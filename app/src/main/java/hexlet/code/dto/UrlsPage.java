@@ -12,7 +12,7 @@ import java.util.Map;
 @Getter
 
 public final class UrlsPage extends BasePage {
-    private List<Url> urls;
+    private final List<Url> urls;
     private Map<Long, UrlCheck> lastChecks;
 
     public UrlsPage(List<Url> urls, Map<Long, UrlCheck> lastChecks) {

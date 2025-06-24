@@ -13,7 +13,7 @@ import java.util.List;
 @Getter
 @NoArgsConstructor
 
-public class UrlPage extends BasePage {
+public final class UrlPage extends BasePage {
     @NonNull private Url url;
     @NonNull private List<UrlCheck> urlChecks;
     private String exampleData;
