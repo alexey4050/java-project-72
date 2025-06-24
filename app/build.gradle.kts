@@ -35,7 +35,7 @@ dependencies {
     implementation("com.h2database:h2:2.3.232")
     implementation("org.postgresql:postgresql:42.7.3")
 
-    implementation("ch.qos.logback:logback-classic:1.4.14")
+    implementation("ch.qos.logback:logback-classic:1.5.15")
 
     implementation("gg.jte:jte:3.2.1")
 
